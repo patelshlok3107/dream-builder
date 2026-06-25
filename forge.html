@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Forge — Dream Builder AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{
+        "tertiary-fixed-dim":"#c6c6c6","surface-dim":"#131313","tertiary":"#ffffff","tertiary-fixed":"#e2e2e2",
+        "tertiary-container":"#e2e2e2","secondary-container":"#571bc1","surface-bright":"#3a3939","surface":"#131313",
+        "primary-container":"#c3f400","on-tertiary-fixed-variant":"#474747","on-primary-fixed":"#161e00",
+        "outline-variant":"#444933","on-tertiary-fixed":"#1b1b1b","background":"#131313","primary-fixed-dim":"#abd600",
+        "on-tertiary-container":"#646464","on-secondary":"#3c0091","secondary-fixed-dim":"#d0bcff","on-error":"#690005",
+        "inverse-surface":"#e5e2e1","on-surface-variant":"#c4c9ac","on-secondary-fixed":"#23005c","primary-fixed":"#c3f400",
+        "primary":"#ffffff","on-background":"#e5e2e1","outline":"#8e9379","secondary":"#d0bcff","on-primary":"#283500",
+        "surface-tint":"#abd600","on-surface":"#e5e2e1","surface-container-highest":"#353534","on-tertiary":"#303030",
+        "inverse-on-surface":"#313030","surface-container-lowest":"#0e0e0e","secondary-fixed":"#e9ddff",
+        "on-secondary-container":"#c4abff","error":"#ffb4ab","on-error-container":"#ffdad6","on-primary-fixed-variant":"#3c4d00",
+        "error-container":"#93000a","on-secondary-fixed-variant":"#5516be","surface-container":"#201f1f",
+        "surface-variant":"#353534","on-primary-container":"#556d00","surface-container-low":"#1c1b1b",
+        "inverse-primary":"#506600","surface-container-high":"#2a2a2a"
+      },
+      borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},
+      spacing:{"stack-xs":"4px","stack-xl":"64px","gutter":"24px","stack-sm":"8px","container-max":"1440px","stack-lg":"32px","stack-md":"16px","margin-mobile":"16px","margin-desktop":"64px"},
+      fontFamily:{"label-caps":["JetBrains Mono"],"headline-lg":["Space Grotesk"],"body-lg":["Inter"],"display-lg":["Space Grotesk"],"body-md":["Inter"],"headline-lg-mobile":["Space Grotesk"],"headline-md":["Space Grotesk"]},
+      fontSize:{"label-caps":["12px",{lineHeight:"1.0",letterSpacing:"0.1em",fontWeight:"700"}],"headline-lg":["48px",{lineHeight:"1.2",letterSpacing:"-0.02em",fontWeight:"600"}],"body-lg":["18px",{lineHeight:"1.6",fontWeight:"400"}],"display-lg":["72px",{lineHeight:"1.1",letterSpacing:"-0.04em",fontWeight:"700"}],"body-md":["16px",{lineHeight:"1.5",fontWeight:"400"}],"headline-lg-mobile":["32px",{lineHeight:"1.2",letterSpacing:"-0.02em",fontWeight:"600"}],"headline-md":["32px",{lineHeight:"1.3",fontWeight:"500"}]}
+    }}
+  }
+</script>
+<style>
+  body { background-color:#000; color:#e5e2e1; min-height:max(884px,100dvh); }
+  .glass-panel { background:rgba(10,10,10,0.6); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); }
+  .cyber-glow { box-shadow:0 0 16px rgba(195,244,0,0.3); }
+  @keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(195,244,0,0.2)} 50%{box-shadow:0 0 50px rgba(195,244,0,0.7)} }
+  .animate-pulse-glow { animation:pulse-glow 3s infinite ease-in-out; }
+  @keyframes float-orb { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+  .orb { animation:float-orb 9s ease-in-out infinite; }
+  /* Typing cursor */
+  .cursor::after { content:'|'; animation:blink 1s step-end infinite; color:#c3f400; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  /* Character count ring */
+  .ring-progress { stroke-dasharray:220; stroke-dashoffset:220; transition:stroke-dashoffset 0.3s ease; }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:#353534; border-radius:10px; }
+</style>
+</head>
+<body class="font-body-md overflow-x-hidden selection:bg-primary-container/30">
+
+<!-- ── HEADER ── -->
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 md:px-margin-desktop h-16">
+  <div class="flex items-center gap-2">
+    <a href="index.html" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+      <span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings:'FILL' 1;">rocket_launch</span>
+      <h1 class="font-headline-md text-[20px] font-bold text-primary-fixed tracking-tight">Dream Builder AI</h1>
+    </a>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="hidden md:block font-label-caps text-label-caps text-on-surface-variant">THE FORGE</span>
+    <a href="dashboard.html" class="text-on-surface-variant hover:text-primary-fixed transition-colors">
+      <span class="material-symbols-outlined">dashboard</span>
+    </a>
+    <div class="w-8 h-8 rounded-full border border-outline/20 bg-surface-container flex items-center justify-center">
+      <span class="material-symbols-outlined text-[20px]">person</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN FORGE CANVAS ── -->
+<main class="relative pt-28 pb-48 px-4 md:px-margin-desktop min-h-screen flex flex-col items-center justify-center">
+
+  <!-- Atmospheric orbs -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-secondary-container/15 rounded-full blur-[120px] orb"></div>
+    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-primary-container/8 rounded-full blur-[100px] orb" style="animation-delay:3s"></div>
+  </div>
+
+  <div class="w-full max-w-3xl z-10 space-y-10 text-center">
+
+    <!-- Title -->
+    <div class="space-y-2">
+      <span class="font-label-caps text-label-caps text-primary-fixed tracking-[0.2em]">CREATION CORE</span>
+      <h2 class="font-display-lg text-[40px] md:text-[64px] font-bold text-on-background tracking-tighter leading-tight">
+        Forge your<br/><span class="text-primary-fixed">future.</span>
+      </h2>
+      <p class="text-on-surface-variant font-body-md max-w-lg mx-auto">Describe your brand. Our AI builds everything else — in 45 seconds.</p>
+    </div>
+
+    <!-- Input box -->
+    <div class="group relative w-full">
+      <div class="absolute -inset-1 bg-gradient-to-r from-primary-container/25 to-secondary-container/25 rounded-xl blur opacity-20 group-focus-within:opacity-60 transition duration-500"></div>
+      <div class="relative glass-panel rounded-xl p-5 transition-all duration-300 group-focus-within:border-primary-container/50">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary-fixed mt-1 flex-shrink-0" style="font-variation-settings:'FILL' 1;">edit</span>
+          <textarea
+            id="brand-prompt"
+            class="w-full bg-transparent border-none focus:ring-0 text-[20px] md:text-[26px] font-headline-md text-on-surface placeholder:text-on-surface-variant/40 resize-none py-1"
+            placeholder="I want to start a..."
+            rows="3"
+            maxlength="280"
+          ></textarea>
+        </div>
+        <!-- Char count + suggestions trigger -->
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+          <div class="flex items-center gap-2">
+            <svg class="w-8 h-8 -rotate-90" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="35" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
+              <circle id="char-ring" cx="40" cy="40" r="35" fill="none" stroke="#c3f400" stroke-width="5" class="ring-progress" stroke-linecap="round"/>
+            </svg>
+            <span id="char-count" class="font-label-caps text-[10px] text-on-surface-variant">0/280</span>
+          </div>
+          <div class="flex gap-2">
+            <span class="font-label-caps text-[10px] text-on-surface-variant opacity-60">Try:</span>
+            <button onclick="setPrompt(this)" data-text="I want to start a streetwear brand for Gen Z called VOID CULT — dark, oversized fits" class="font-label-caps text-[10px] text-primary-fixed hover:underline">streetwear</button>
+            <button onclick="setPrompt(this)" data-text="I want to start a minimalist skincare brand for millennials called LUMINARY — clean beauty" class="font-label-caps text-[10px] text-primary-fixed hover:underline">skincare</button>
+            <button onclick="setPrompt(this)" data-text="I want to start a premium supplement brand for athletes called APEX LABS" class="font-label-caps text-[10px] text-primary-fixed hover:underline">fitness</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Brand vibe chips -->
+    <div class="space-y-4">
+      <p class="font-label-caps text-label-caps text-on-surface-variant/60 tracking-widest">SELECT BRAND VIBE</p>
+      <div class="flex flex-wrap justify-center gap-3" id="vibe-chips">
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Dark &amp; Edgy">🖤 Dark &amp; Edgy</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Eco-friendly">🌿 Eco-friendly</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Luxury">💎 Luxury</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Minimalist">✦ Minimalist</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Brutalist">⬛ Brutalist</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Cyberpunk">⚡ Cyberpunk</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Retro">📼 Retro</button>
+        <button class="vibe-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-primary-container/50 transition-all active:scale-95" data-vibe="Streetwear">👟 Streetwear</button>
+      </div>
+    </div>
+
+    <!-- Target audience -->
+    <div class="space-y-4">
+      <p class="font-label-caps text-label-caps text-on-surface-variant/60 tracking-widest">TARGET AUDIENCE</p>
+      <div class="flex flex-wrap justify-center gap-3" id="audience-chips">
+        <button class="aud-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-secondary/50 transition-all active:scale-95" data-aud="Gen Z">Gen Z</button>
+        <button class="aud-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-secondary/50 transition-all active:scale-95" data-aud="Millennials">Millennials</button>
+        <button class="aud-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-secondary/50 transition-all active:scale-95" data-aud="Athletes">Athletes</button>
+        <button class="aud-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-secondary/50 transition-all active:scale-95" data-aud="Professionals">Professionals</button>
+        <button class="aud-chip glass-panel px-5 py-2.5 rounded-full font-label-caps text-label-caps text-on-surface border border-white/5 hover:border-secondary/50 transition-all active:scale-95" data-aud="Parents">Parents</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Big CTA button — fixed bottom -->
+  <div class="fixed bottom-20 md:bottom-8 z-20 flex flex-col items-center gap-2">
+    <button id="build-btn" onclick="launchBuild()" class="bg-primary-container text-on-primary-fixed font-headline-md text-[18px] px-12 py-5 rounded-full flex items-center gap-3 animate-pulse-glow hover:scale-105 active:scale-95 transition-all duration-300 group">
+      <span id="btn-text">Build My Startup</span>
+      <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style="font-variation-settings:'FILL' 1;">bolt</span>
+    </button>
+    <p class="font-label-caps text-[9px] text-on-surface-variant opacity-50">45 SECONDS. NO CREDIT CARD.</p>
+  </div>
+</main>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface/60 backdrop-blur-2xl border-t border-white/10 rounded-t-xl shadow-[0_-8px_16px_rgba(195,244,0,0.1)]">
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="index.html">
+    <span class="material-symbols-outlined">home</span>
+    <span class="font-label-caps text-[10px] mt-1">Home</span>
+  </a>
+  <a class="flex flex-col items-center text-primary-fixed bg-secondary-container/30 rounded-full px-4 py-1 shadow-[0_0_12px_rgba(195,244,0,0.4)]" href="forge.html">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+    <span class="font-label-caps text-[10px] mt-1">Forge</span>
+  </a>
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="building.html">
+    <span class="material-symbols-outlined">insights</span>
+    <span class="font-label-caps text-[10px] mt-1">Building</span>
+  </a>
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="dashboard.html">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="font-label-caps text-[10px] mt-1">Dashboard</span>
+  </a>
+</nav>
+
+<script>
+  // Char counter
+  const ta = document.getElementById('brand-prompt');
+  const ring = document.getElementById('char-ring');
+  const countEl = document.getElementById('char-count');
+  const circumference = 2 * Math.PI * 35;
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+
+  ta.addEventListener('input', () => {
+    const len = ta.value.length;
+    const pct = len / 280;
+    ring.style.strokeDashoffset = circumference * (1 - pct);
+    countEl.textContent = `${len}/280`;
+    ring.style.stroke = pct > 0.85 ? '#ffb4ab' : '#c3f400';
+  });
+
+  // Vibe chips
+  document.querySelectorAll('.vibe-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.vibe-chip').forEach(c => {
+        c.classList.remove('bg-secondary-container/20','text-secondary-fixed','border-secondary-container','!border-secondary-container');
+        c.classList.add('glass-panel','text-on-surface','border-white/5');
+      });
+      chip.classList.add('bg-secondary-container/20','text-secondary-fixed','!border-secondary-container');
+      chip.classList.remove('glass-panel','text-on-surface','border-white/5');
+    });
+  });
+
+  // Audience chips
+  document.querySelectorAll('.aud-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.aud-chip').forEach(c => {
+        c.classList.remove('bg-secondary-container/10','text-secondary','!border-secondary');
+        c.classList.add('glass-panel','text-on-surface','border-white/5');
+      });
+      chip.classList.add('bg-secondary-container/10','text-secondary','!border-secondary');
+      chip.classList.remove('glass-panel','text-on-surface','border-white/5');
+    });
+  });
+
+  // Preset prompts
+  function setPrompt(btn) {
+    ta.value = btn.dataset.text;
+    ta.dispatchEvent(new Event('input'));
+    ta.focus();
+  }
+
+  // Launch
+  function launchBuild() {
+    const prompt = ta.value.trim();
+    const btn = document.getElementById('build-btn');
+    const btnText = document.getElementById('btn-text');
+
+    if (!prompt || prompt.length < 10) {
+      ta.style.borderColor = 'rgba(255,180,171,0.5)';
+      ta.closest('.glass-panel').style.borderColor = 'rgba(255,180,171,0.4)';
+      setTimeout(() => { ta.closest('.glass-panel').style.borderColor = ''; }, 1200);
+      ta.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Launching…';
+    btn.style.transform = 'scale(0.97)';
+
+    // Store prompt for building page
+    sessionStorage.setItem('brandPrompt', prompt);
+    const vibe = document.querySelector('.vibe-chip.text-secondary-fixed')?.dataset.vibe || '';
+    const aud  = document.querySelector('.aud-chip.text-secondary')?.dataset.aud || '';
+    sessionStorage.setItem('brandVibe', vibe);
+    sessionStorage.setItem('brandAudience', aud);
+
+    setTimeout(() => { window.location.href = 'building.html'; }, 800);
+  }
+
+  // Button glow on mousedown
+  const buildBtn = document.getElementById('build-btn');
+  buildBtn.addEventListener('mousedown', () => buildBtn.style.boxShadow = '0 0 70px rgba(195,244,0,0.9)');
+  buildBtn.addEventListener('mouseup',   () => buildBtn.style.boxShadow = '');
+</script>
+</body>
+</html>

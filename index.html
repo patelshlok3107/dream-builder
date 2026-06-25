@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dream Builder AI | One Prompt. Entire Startup.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary-fixed-dim": "#c6c6c6", "surface-dim": "#131313", "tertiary": "#ffffff",
+          "tertiary-fixed": "#e2e2e2", "tertiary-container": "#e2e2e2", "secondary-container": "#571bc1",
+          "surface-bright": "#3a3939", "surface": "#131313", "primary-container": "#c3f400",
+          "on-tertiary-fixed-variant": "#474747", "on-primary-fixed": "#161e00", "outline-variant": "#444933",
+          "on-tertiary-fixed": "#1b1b1b", "background": "#131313", "primary-fixed-dim": "#abd600",
+          "on-tertiary-container": "#646464", "on-secondary": "#3c0091", "secondary-fixed-dim": "#d0bcff",
+          "on-error": "#690005", "inverse-surface": "#e5e2e1", "on-surface-variant": "#c4c9ac",
+          "on-secondary-fixed": "#23005c", "primary-fixed": "#c3f400", "primary": "#ffffff",
+          "on-background": "#e5e2e1", "outline": "#8e9379", "secondary": "#d0bcff",
+          "on-primary": "#283500", "surface-tint": "#abd600", "on-surface": "#e5e2e1",
+          "surface-container-highest": "#353534", "on-tertiary": "#303030", "inverse-on-surface": "#313030",
+          "surface-container-lowest": "#0e0e0e", "secondary-fixed": "#e9ddff",
+          "on-secondary-container": "#c4abff", "error": "#ffb4ab", "on-error-container": "#ffdad6",
+          "on-primary-fixed-variant": "#3c4d00", "error-container": "#93000a",
+          "on-secondary-fixed-variant": "#5516be", "surface-container": "#201f1f",
+          "surface-variant": "#353534", "on-primary-container": "#556d00",
+          "surface-container-low": "#1c1b1b", "inverse-primary": "#506600", "surface-container-high": "#2a2a2a"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: {
+          "stack-xs": "4px", "stack-xl": "64px", "gutter": "24px", "stack-sm": "8px",
+          "container-max": "1440px", "stack-lg": "32px", "stack-md": "16px",
+          "margin-mobile": "16px", "margin-desktop": "64px"
+        },
+        fontFamily: {
+          "label-caps": ["JetBrains Mono"], "headline-lg": ["Space Grotesk"], "body-lg": ["Inter"],
+          "display-lg": ["Space Grotesk"], "body-md": ["Inter"],
+          "headline-lg-mobile": ["Space Grotesk"], "headline-md": ["Space Grotesk"]
+        },
+        fontSize: {
+          "label-caps": ["12px", { lineHeight: "1.0", letterSpacing: "0.1em", fontWeight: "700" }],
+          "headline-lg": ["48px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+          "display-lg": ["72px", { lineHeight: "1.1", letterSpacing: "-0.04em", fontWeight: "700" }],
+          "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+          "headline-lg-mobile": ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "headline-md": ["32px", { lineHeight: "1.3", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { background-color: #000000; color: #e5e2e1; scroll-behavior: smooth; min-height: max(884px, 100dvh); }
+  .glass-panel { background: rgba(10,10,10,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+  .cyber-glow { box-shadow: 0 0 16px rgba(195,244,0,0.3); }
+  .hover-glow:hover { box-shadow: 0 0 24px rgba(195,244,0,0.5); border-color: rgba(195,244,0,0.5); }
+  .energy-pulse { background: linear-gradient(90deg,#c3f400,#d0bcff,#c3f400); background-size: 200% 100%; animation: pulse 4s linear infinite; }
+  @keyframes pulse { 0%{background-position:100% 0%} 100%{background-position:-100% 0%} }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  /* Hero grid background */
+  .hero-grid {
+    background-image: linear-gradient(rgba(195,244,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(195,244,0,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  /* Floating orbs */
+  @keyframes float-orb { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-20px) scale(1.05)} }
+  .orb-1 { animation: float-orb 8s ease-in-out infinite; }
+  .orb-2 { animation: float-orb 11s ease-in-out infinite 2s; }
+  @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+  /* Number counter */
+  @keyframes count-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .count-up { animation: count-up 0.5s ease forwards; }
+</style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+
+<!-- ── NAV ── -->
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 md:px-16 h-16">
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings:'FILL' 1;">rocket_launch</span>
+    <span class="font-headline-md text-[20px] font-bold text-primary-fixed tracking-tight">Dream Builder AI</span>
+  </div>
+  <nav class="hidden md:flex gap-8 items-center">
+    <a class="text-on-surface-variant font-label-caps text-label-caps hover:text-primary-fixed transition-colors" href="#features">Features</a>
+    <a class="text-on-surface-variant font-label-caps text-label-caps hover:text-primary-fixed transition-colors" href="#pricing">Pricing</a>
+    <a class="text-on-surface-variant font-label-caps text-label-caps hover:text-primary-fixed transition-colors" href="dashboard.html">Dashboard</a>
+    <a href="forge.html" class="bg-primary-container text-on-primary-fixed px-6 py-2 rounded-full font-label-caps text-label-caps font-bold hover:opacity-80 active:scale-95 duration-150 cyber-glow">
+      Launch
+    </a>
+  </nav>
+  <button class="md:hidden text-primary-fixed" id="mob-menu-btn">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+</header>
+
+<!-- Mobile drawer -->
+<div id="mob-menu" class="hidden fixed inset-0 z-40 bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center gap-10">
+  <button id="mob-close" class="absolute top-5 right-5 text-white"><span class="material-symbols-outlined text-3xl">close</span></button>
+  <a class="font-headline-md text-2xl text-on-surface hover:text-primary-fixed transition-colors" href="#features" onclick="closeMob()">Features</a>
+  <a class="font-headline-md text-2xl text-on-surface hover:text-primary-fixed transition-colors" href="#pricing" onclick="closeMob()">Pricing</a>
+  <a class="font-headline-md text-2xl text-on-surface hover:text-primary-fixed transition-colors" href="dashboard.html">Dashboard</a>
+  <a href="forge.html" class="mt-4 bg-primary-container text-on-primary-fixed px-10 py-4 rounded-full font-headline-md font-bold cyber-glow">Launch Free</a>
+</div>
+
+<main class="pt-16">
+
+  <!-- ── HERO ── -->
+  <section class="relative min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+    <!-- Grid bg -->
+    <div class="absolute inset-0 hero-grid opacity-60 z-0"></div>
+    <!-- Orbs -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-secondary-container/20 rounded-full blur-[100px] orb-1 pointer-events-none z-0"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary-container/10 rounded-full blur-[120px] orb-2 pointer-events-none z-0"></div>
+
+    <div class="relative z-10 max-w-4xl">
+      <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-primary-fixed/30 bg-primary-fixed/5 mb-8">
+        <span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+        <span class="font-label-caps text-[10px] text-primary-fixed uppercase tracking-widest">Next-Gen Startup Engine</span>
+      </div>
+
+      <h1 class="font-display-lg text-[44px] md:text-[88px] leading-[0.95] tracking-tight mb-6 bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">
+        One Prompt.<br/><span class="text-primary-fixed">Entire Startup.</span>
+      </h1>
+
+      <p class="font-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10">
+        Stop juggling subscriptions. Describe your idea, and we'll build the brand, the store, the code, and the marketing engine in seconds.
+      </p>
+
+      <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-16">
+        <a href="forge.html" class="w-full md:w-auto px-10 py-5 bg-primary-container text-on-primary-fixed rounded-full font-headline-md text-[20px] font-bold cyber-glow hover:scale-105 active:scale-95 transition-all">
+          Launch for Free →
+        </a>
+        <a href="building.html" class="w-full md:w-auto px-10 py-5 bg-transparent border border-white/20 text-white rounded-full font-headline-md text-[20px] hover:bg-white/5 transition-all">
+          Watch Demo
+        </a>
+      </div>
+
+      <!-- Stats row -->
+      <div class="flex flex-wrap justify-center gap-8 md:gap-16">
+        <div class="text-center">
+          <div class="font-display-lg text-[2rem] font-bold text-primary-fixed">1,200+</div>
+          <div class="font-label-caps text-label-caps text-on-surface-variant">Brands Built</div>
+        </div>
+        <div class="w-px bg-white/10 hidden md:block"></div>
+        <div class="text-center">
+          <div class="font-display-lg text-[2rem] font-bold text-primary-fixed">45s</div>
+          <div class="font-label-caps text-label-caps text-on-surface-variant">Avg. Build Time</div>
+        </div>
+        <div class="w-px bg-white/10 hidden md:block"></div>
+        <div class="text-center">
+          <div class="font-display-lg text-[2rem] font-bold text-primary-fixed">₹84L+</div>
+          <div class="font-label-caps text-label-caps text-on-surface-variant">Revenue Generated</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard preview card -->
+    <div class="mt-20 relative w-full max-w-5xl px-4">
+      <div class="glass-panel rounded-xl overflow-hidden shadow-2xl border border-white/10">
+        <!-- Fake dashboard preview -->
+        <div class="bg-surface-container-lowest p-4 border-b border-white/10 flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-error/60"></div>
+          <div class="w-3 h-3 rounded-full bg-primary-container/60"></div>
+          <div class="w-3 h-3 rounded-full bg-primary-fixed/60"></div>
+          <span class="font-label-caps text-[10px] text-on-surface-variant ml-auto">dream-builder-ai — dashboard</span>
+        </div>
+        <div class="grid grid-cols-3 md:grid-cols-6 gap-px bg-white/5">
+          <div class="bg-surface-container-lowest p-4 col-span-2 md:col-span-2">
+            <div class="text-[10px] font-label-caps text-on-surface-variant mb-1">REVENUE</div>
+            <div class="font-headline-md text-xl text-primary-fixed font-bold">₹1,24,500</div>
+            <div class="text-[10px] text-on-surface-variant mt-1">↑ 24% this week</div>
+          </div>
+          <div class="bg-surface-container-lowest p-4">
+            <div class="text-[10px] font-label-caps text-on-surface-variant mb-1">ORDERS</div>
+            <div class="font-headline-md text-xl font-bold">347</div>
+            <div class="text-[10px] text-on-surface-variant mt-1">↑ 12%</div>
+          </div>
+          <div class="bg-surface-container-lowest p-4">
+            <div class="text-[10px] font-label-caps text-on-surface-variant mb-1">CVR</div>
+            <div class="font-headline-md text-xl font-bold text-secondary">12.4%</div>
+            <div class="text-[10px] text-on-surface-variant mt-1">↑ 3.1%</div>
+          </div>
+          <div class="bg-surface-container-lowest p-4 col-span-2">
+            <div class="text-[10px] font-label-caps text-on-surface-variant mb-2">AI PIPELINE</div>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 text-[10px]"><span class="text-primary-fixed">●</span> Logo & Identity <span class="ml-auto text-primary-fixed">100%</span></div>
+              <div class="flex items-center gap-2 text-[10px]"><span class="text-primary-fixed">●</span> Storefront <span class="ml-auto text-primary-fixed">100%</span></div>
+              <div class="flex items-center gap-2 text-[10px]"><span class="text-secondary">●</span> Ad Campaigns <span class="ml-auto text-secondary">88%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section id="features" class="py-stack-xl px-4 md:px-margin-desktop">
+    <div class="max-w-container-max mx-auto">
+      <div class="mb-16 text-center">
+        <p class="font-label-caps text-label-caps text-primary-fixed mb-3 tracking-widest">WHAT WE BUILD FOR YOU</p>
+        <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-4">Six engines. <span class="text-primary-fixed">One prompt.</span></h2>
+        <p class="text-on-surface-variant font-body-lg">Everything a founding team does in months — done by AI in minutes.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <div class="glass-panel p-8 rounded-xl hover:border-primary-fixed/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-primary-container/10 border border-primary-container/20 rounded-lg flex items-center justify-center text-primary-fixed mb-5 group-hover:bg-primary-container/20 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">palette</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Logo & Brand Identity</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">3 logo concepts, color palette, typography pairing, brand voice guide. SVG, PNG, favicon exports.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-xl hover:border-primary-fixed/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-primary-container/10 border border-primary-container/20 rounded-lg flex items-center justify-center text-primary-fixed mb-5 group-hover:bg-primary-container/20 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">storefront</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Website Builder</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">Full Shopify storefront — homepage, products, cart, checkout. Mobile-first, SEO meta tags auto-written.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-xl hover:border-primary-fixed/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-primary-container/10 border border-primary-container/20 rounded-lg flex items-center justify-center text-primary-fixed mb-5 group-hover:bg-primary-container/20 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">checkroom</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Product Generator</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">5–10 products designed with mockups, pricing strategy, and pushed to Printify for fulfillment.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-xl hover:border-secondary/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-secondary-container/20 border border-secondary-container/40 rounded-lg flex items-center justify-center text-secondary mb-5 group-hover:bg-secondary-container/30 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">campaign</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Ads Engine</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">9 ad variations across Facebook, TikTok, Google — with targeting and budget recommendations.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-xl hover:border-secondary/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-secondary-container/20 border border-secondary-container/40 rounded-lg flex items-center justify-center text-secondary mb-5 group-hover:bg-secondary-container/30 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">photo_camera</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Instagram Content</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">Full 9-post grid, captions, hashtags, Reel scripts. Posting schedule for max reach.</p>
+        </div>
+        <div class="glass-panel p-8 rounded-xl hover:border-secondary/30 transition-all group cursor-default">
+          <div class="w-12 h-12 bg-secondary-container/20 border border-secondary-container/40 rounded-lg flex items-center justify-center text-secondary mb-5 group-hover:bg-secondary-container/30 transition-all">
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1;">insights</span>
+          </div>
+          <h3 class="font-headline-md text-[20px] font-semibold text-white mb-2">Sales Dashboard</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed">Real-time revenue, orders, traffic. Weekly AI insights. Growth suggestions every Monday.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COMPARISON ── -->
+  <section class="py-stack-xl px-4 md:px-margin-desktop">
+    <div class="max-w-container-max mx-auto">
+      <div class="mb-16 text-center">
+        <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-4">Old World vs. <span class="text-primary-fixed">The Future</span></h2>
+        <p class="text-on-surface-variant font-body-lg">Why waste months when you can win in minutes?</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <div class="glass-panel p-8 rounded-xl flex flex-col justify-between group hover:border-error/50 transition-all h-full">
+          <div>
+            <div class="flex justify-between items-start mb-6">
+              <span class="text-on-surface-variant font-label-caps text-label-caps opacity-50">E-Commerce</span>
+              <span class="material-symbols-outlined text-error">close</span>
+            </div>
+            <h3 class="font-headline-md text-[22px] mb-2 text-tertiary-fixed">Shopify Path</h3>
+            <p class="text-on-surface-variant text-sm mb-6">Buy domain. Setup theme. Install 20 apps. Hire a dev. Wait 3 weeks. Lose $500.</p>
+          </div>
+          <div class="h-1 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full bg-error w-1/4 rounded-full"></div>
+          </div>
+        </div>
+        <div class="glass-panel p-8 rounded-xl flex flex-col justify-between group hover:border-error/50 transition-all h-full">
+          <div>
+            <div class="flex justify-between items-start mb-6">
+              <span class="text-on-surface-variant font-label-caps text-label-caps opacity-50">Design & Assets</span>
+              <span class="material-symbols-outlined text-error">close</span>
+            </div>
+            <h3 class="font-headline-md text-[22px] mb-2 text-tertiary-fixed">Canva Path</h3>
+            <p class="text-on-surface-variant text-sm mb-6">Browse templates. Try to match colors. Export. Re-edit. 10 hours later, it looks "okay".</p>
+          </div>
+          <div class="h-1 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full bg-error w-1/3 rounded-full"></div>
+          </div>
+        </div>
+        <div class="glass-panel p-8 rounded-xl border-primary-fixed/50 flex flex-col justify-between cyber-glow h-full relative overflow-hidden">
+          <div class="absolute top-0 right-0 p-4">
+            <span class="material-symbols-outlined text-primary-fixed animate-spin-slow" style="font-variation-settings:'FILL' 1;">star</span>
+          </div>
+          <div>
+            <div class="flex justify-between items-start mb-6">
+              <span class="text-primary-fixed font-label-caps text-label-caps">Integrated AI</span>
+              <span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings:'FILL' 1;">check_circle</span>
+            </div>
+            <h3 class="font-headline-md text-[22px] mb-2 text-white">Dream Builder</h3>
+            <p class="text-white/80 text-sm mb-6">Type "Organic protein brand for Gen Z". Get logos, ads, code, and supply chain in 45s.</p>
+          </div>
+          <div class="h-2 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full energy-pulse w-full rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRICING ── -->
+  <section id="pricing" class="py-stack-xl px-4 md:px-margin-desktop bg-surface-container-lowest">
+    <div class="max-w-container-max mx-auto">
+      <div class="mb-16 text-center">
+        <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-4">Choose Your <span class="text-secondary">Pace</span></h2>
+        <p class="text-on-surface-variant font-body-lg">Scale as fast as your dreams do.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Seed -->
+        <div class="glass-panel p-10 rounded-xl flex flex-col border-white/5 hover:bg-white/5 transition-colors" style="transition:transform 0.2s">
+          <div class="mb-8">
+            <h4 class="font-headline-md text-[24px] mb-2">🌱 Seed</h4>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-bold">₹0</span>
+              <span class="text-on-surface-variant font-label-caps text-xs">/FOREVER</span>
+            </div>
+          </div>
+          <ul class="flex-grow space-y-4 mb-10">
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>1 Project Launch</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Basic Brand Assets</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>5 Products</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>3 IG Posts/Month</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Community Access</li>
+          </ul>
+          <a href="forge.html" class="w-full py-3 rounded-lg border border-white/20 font-label-caps text-label-caps hover:bg-white/10 transition-all text-center block">Start Free</a>
+        </div>
+        <!-- Grind -->
+        <div class="glass-panel p-10 rounded-xl flex flex-col border-primary-fixed/40 relative transform md:-translate-y-4 cyber-glow">
+          <div class="absolute top-0 right-10 -translate-y-1/2 bg-primary-container text-on-primary-fixed px-3 py-1 rounded-full font-label-caps text-[10px] font-black">MOST POPULAR</div>
+          <div class="mb-8">
+            <h4 class="font-headline-md text-[24px] mb-2">🔥 Grind</h4>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-bold">₹999</span>
+              <span class="text-on-surface-variant font-label-caps text-xs">/MO</span>
+            </div>
+          </div>
+          <ul class="flex-grow space-y-4 mb-10">
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>3 Brands</li>
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Full Logo Suite</li>
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>25 Products + Printify</li>
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Full Ad Engine</li>
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Advanced AI Marketing Kit</li>
+            <li class="flex items-center gap-3 text-white text-sm"><span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>SEO Optimization Suite</li>
+          </ul>
+          <a href="forge.html" class="w-full py-3 rounded-lg bg-primary-container text-on-primary-fixed font-label-caps text-label-caps font-bold hover:opacity-90 transition-all text-center block">Go Pro 🔥</a>
+        </div>
+        <!-- Empire -->
+        <div class="glass-panel p-10 rounded-xl flex flex-col border-white/5 hover:bg-white/5 transition-colors">
+          <div class="mb-8">
+            <h4 class="font-headline-md text-[24px] mb-2">🚀 Empire</h4>
+            <div class="flex items-baseline gap-1">
+              <span class="text-4xl font-bold">₹2,999</span>
+              <span class="text-on-surface-variant font-label-caps text-xs">/MO</span>
+            </div>
+          </div>
+          <ul class="flex-grow space-y-4 mb-10">
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Unlimited Brands</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Custom AI Model Fine-tuning</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>White-label Solutions</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Auto Ad Publisher</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>Priority 24/7 Concierge</li>
+            <li class="flex items-center gap-3 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-secondary text-lg" style="font-variation-settings:'FILL' 1;">check_circle</span>API Access & Webhooks</li>
+          </ul>
+          <a href="forge.html" class="w-full py-3 rounded-lg border border-secondary/50 text-secondary font-label-caps text-label-caps hover:bg-secondary/10 transition-all text-center block">Scale Up →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINAL CTA ── -->
+  <section class="py-stack-xl px-4 text-center">
+    <div class="max-w-3xl mx-auto glass-panel p-16 rounded-[2rem] border-primary-fixed/20 relative overflow-hidden">
+      <div class="absolute -top-20 -left-20 w-80 h-80 bg-secondary-container/20 rounded-full blur-[80px] pointer-events-none"></div>
+      <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-primary-container/10 rounded-full blur-[80px] pointer-events-none"></div>
+      <h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg mb-4 relative z-10">Ready to build your <span class="text-primary-fixed">Legacy?</span></h2>
+      <p class="text-on-surface-variant text-sm mb-8 relative z-10">Join 2,400+ founders on the waitlist.</p>
+      <div class="flex flex-col md:flex-row gap-4 justify-center relative z-10" id="cta-form-wrap">
+        <input id="cta-email" class="w-full md:w-80 bg-surface-container border border-white/10 focus:ring-2 focus:ring-primary-fixed rounded-full px-8 py-4 text-white font-body-md outline-none placeholder:text-on-surface-variant/60" placeholder="Enter your email" type="email"/>
+        <button onclick="handleCTA()" class="bg-primary-container text-on-primary-fixed px-10 py-4 rounded-full font-headline-md font-bold hover:scale-105 transition-transform active:scale-95 cyber-glow">
+          Get Early Access
+        </button>
+      </div>
+      <div id="cta-success" class="hidden relative z-10 flex items-center justify-center gap-3 py-4">
+        <span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings:'FILL' 1;">celebration</span>
+        <span class="font-headline-md text-primary-fixed text-xl">You're on the list! We'll reach out within 24h.</span>
+      </div>
+      <p class="mt-6 text-on-surface-variant font-label-caps text-[10px] opacity-60 relative z-10">NO CREDIT CARD REQUIRED. START BUILDING IN 45 SECONDS.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="bg-black py-20 px-4 md:px-margin-desktop border-t border-white/5">
+  <div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+    <div class="max-w-xs">
+      <div class="flex items-center gap-2 mb-6">
+        <span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings:'FILL' 1;">rocket_launch</span>
+        <span class="font-headline-md text-[20px] text-primary-fixed font-bold tracking-tight">Dream Builder AI</span>
+      </div>
+      <p class="text-on-surface-variant text-sm leading-relaxed">The world's first autonomous startup creation engine. From thought to profit at the speed of light.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-16">
+      <div>
+        <h5 class="font-label-caps text-label-caps text-white mb-6">PRODUCT</h5>
+        <ul class="space-y-4 text-on-surface-variant text-sm">
+          <li><a class="hover:text-primary-fixed transition-colors" href="forge.html">Forge Engine</a></li>
+          <li><a class="hover:text-primary-fixed transition-colors" href="building.html">Building Phase</a></li>
+          <li><a class="hover:text-primary-fixed transition-colors" href="dashboard.html">Dashboard</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 class="font-label-caps text-label-caps text-white mb-6">LEGAL</h5>
+        <ul class="space-y-4 text-on-surface-variant text-sm">
+          <li><a class="hover:text-primary-fixed transition-colors" href="#">Privacy</a></li>
+          <li><a class="hover:text-primary-fixed transition-colors" href="#">Terms</a></li>
+          <li><a class="hover:text-primary-fixed transition-colors" href="#">Safety</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5 class="font-label-caps text-label-caps text-white mb-6">SOCIAL</h5>
+        <div class="flex gap-4">
+          <a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:text-primary-fixed transition-colors" href="#"><span class="material-symbols-outlined text-sm">public</span></a>
+          <a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:text-primary-fixed transition-colors" href="#"><span class="material-symbols-outlined text-sm">alternate_email</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="max-w-container-max mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-on-surface-variant text-[10px] font-label-caps tracking-widest opacity-40">
+    <span>© 2026 DREAM BUILDER AI. BUILT FOR THE BOLD.</span>
+    <span>POWERED BY HYPER-INTELLIGENCE</span>
+  </div>
+</footer>
+
+<!-- Mobile Bottom Nav -->
+<div class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface/60 backdrop-blur-2xl border-t border-white/10 flex justify-around items-center px-4 py-3 rounded-t-xl shadow-[0_-8px_16px_rgba(195,244,0,0.1)]">
+  <a class="flex flex-col items-center text-primary-fixed bg-secondary-container/30 rounded-full px-4 py-1" href="index.html">
+    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">home</span>
+    <span class="font-label-caps text-[10px] mt-1">Home</span>
+  </a>
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="forge.html">
+    <span class="material-symbols-outlined">auto_awesome</span>
+    <span class="font-label-caps text-[10px] mt-1">Forge</span>
+  </a>
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="building.html">
+    <span class="material-symbols-outlined">insights</span>
+    <span class="font-label-caps text-[10px] mt-1">Building</span>
+  </a>
+  <a class="flex flex-col items-center text-tertiary-fixed-dim opacity-60 hover:text-primary-fixed transition-all" href="dashboard.html">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="font-label-caps text-[10px] mt-1">Dashboard</span>
+  </a>
+</div>
+
+<script>
+  // Mobile menu
+  document.getElementById('mob-menu-btn').onclick = () => { document.getElementById('mob-menu').classList.remove('hidden'); document.getElementById('mob-menu').classList.add('flex'); };
+  document.getElementById('mob-close').onclick = closeMob;
+  function closeMob() { document.getElementById('mob-menu').classList.add('hidden'); document.getElementById('mob-menu').classList.remove('flex'); }
+
+  // Hover lift for cards
+  document.querySelectorAll('.glass-panel').forEach(card => {
+    card.addEventListener('mouseenter', () => { if (!card.classList.contains('cyber-glow')) card.style.transform = 'translateY(-4px)'; });
+    card.addEventListener('mouseleave', () => { if (!card.classList.contains('cyber-glow')) card.style.transform = ''; });
+  });
+
+  // CTA form
+  function handleCTA() {
+    const email = document.getElementById('cta-email').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('cta-email').style.borderColor = 'rgba(255,180,171,0.6)';
+      setTimeout(() => document.getElementById('cta-email').style.borderColor = '', 1200);
+      return;
+    }
+    document.getElementById('cta-form-wrap').style.display = 'none';
+    document.getElementById('cta-success').classList.remove('hidden');
+    document.getElementById('cta-success').classList.add('flex');
+  }
+</script>
+</body>
+</html>
