@@ -9,7 +9,45 @@ const PIPELINE_STEPS = [
     'SEO', 'Launch', 'Scale',
 ];
 
-// ── List user's projects ──────────────────────────────────────────────────
+function isImageDataUrl(value) {
+    return typeof value === 'string' && /^data:image\/(png|jpe?g|webp|gif|svg\+xml);/i.test(value);
+}
+
+function normalizeUserAssets(input = {}) {
+    const logoDataUrl = isImageDataUrl(input.logoDataUrl) ? input.logoDataUrl : '';
+    const productImages = Array.isArray(input.productImages)
+        ? input.productImages
+            .filter((item) => isImageDataUrl(item?.dataUrl))
+            .slice(0, 5)
+            .map((item) => ({
+                name: String(item.name || 'Uploaded product image').slice(0, 120),
+                dataUrl: item.dataUrl,
+            }))
+        : [];
+    return { logoDataUrl, productImages };
+}
+
+function userAssetsFromProject(project) {
+    const identityBrand = project.steps
+        ?.find((step) => step.step_name === 'Identity')
+        ?.notes?.brand || {};
+    const products = project.steps
+        ?.find((step) => step.step_name === 'Products')
+        ?.notes?.products || [];
+
+    return normalizeUserAssets({
+        logoDataUrl: identityBrand.uploadedLogoDataUrl || (identityBrand.logoSource === 'uploaded' ? identityBrand.logoDataUrl : ''),
+        productImages: Array.isArray(products)
+            ? products
+                .filter((product) => product.imageSource === 'uploaded')
+                .map((product) => ({
+                    name: product.uploadedImageName || product.name,
+                    dataUrl: product.imageDataUrl,
+                }))
+            : [],
+    });
+}
+
 router.get('/', requireAuth, async (req, res) => {
     try {
         const projects = await db.listProjects(req.userId);
@@ -20,7 +58,6 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
-// ── Get single project with pipeline steps ─────────────────────────────────
 router.get('/:id', requireAuth, async (req, res) => {
     try {
         const project = await db.getProjectWithSteps(req.userId, req.params.id);
@@ -35,10 +72,9 @@ router.get('/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ── Create project ─────────────────────────────────────────────────────────
 router.post('/', requireAuth, async (req, res) => {
     try {
-        const { name, description, category, tagline } = req.body;
+        const { name, description, category, tagline, userAssets } = req.body;
         if (!name) {
             return res.status(400).json({ error: 'Project name is required' });
         }
@@ -50,7 +86,10 @@ router.post('/', requireAuth, async (req, res) => {
             tagline: tagline || '',
         }, PIPELINE_STEPS);
 
-        const kit = await generateStartupKit(project);
+        const kit = await generateStartupKit({
+            ...project,
+            userAssets: normalizeUserAssets(userAssets),
+        });
         const builtProject = await db.applyStartupKit(req.userId, project.id, kit);
 
         res.status(201).json(builtProject || project);
@@ -60,19 +99,20 @@ router.post('/', requireAuth, async (req, res) => {
     }
 });
 
-// ── Delete project ──────────────────────────────────────────────────────────
 router.post('/:id/regenerate', requireAuth, async (req, res) => {
     try {
         const project = await db.getProjectWithSteps(req.userId, req.params.id);
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
         }
+
         const previousTemplateKey = project.steps
             ?.find((step) => step.step_name === 'Identity')
             ?.notes?.brand?.websiteTemplate?.key || '';
 
         const kit = await generateStartupKit({
             ...project,
+            userAssets: userAssetsFromProject(project),
             avoidTemplateKey: previousTemplateKey,
             regenerate: true,
             regenerateAt: new Date().toISOString(),

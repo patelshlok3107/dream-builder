@@ -149,6 +149,26 @@ function svgToDataUrl(svg) {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+function isImageDataUrl(value) {
+    return typeof value === 'string' && /^data:image\/(png|jpe?g|webp|gif|svg\+xml);/i.test(value);
+}
+
+function userAssetsFrom(project) {
+    const assets = project?.userAssets && typeof project.userAssets === 'object' ? project.userAssets : {};
+    const logoDataUrl = isImageDataUrl(assets.logoDataUrl) ? assets.logoDataUrl : '';
+    const productImages = Array.isArray(assets.productImages)
+        ? assets.productImages.filter((item) => isImageDataUrl(item?.dataUrl)).slice(0, 5)
+        : [];
+    return { logoDataUrl, productImages };
+}
+
+function brandLogoHtml(brand) {
+    if (isImageDataUrl(brand.logoDataUrl)) {
+        return `<img src="${brand.logoDataUrl}" alt="${escapeHtml(brand.websiteName || 'Brand')} logo">`;
+    }
+    return brand.logoSvg || escapeHtml(String(brand.websiteName || 'DB').slice(0, 2).toUpperCase());
+}
+
 function makeDesignVariant(avoidTemplateKey = '') {
     const seed = crypto.randomBytes(8).toString('hex');
     const index = parseInt(seed.slice(0, 2), 16) % DESIGN_VARIANTS.length;
@@ -249,13 +269,17 @@ function makeInstagramPosterSvg(ad, brand, index) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="${headline} Instagram post"><defs><linearGradient id="posterBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${primary}"/><stop offset=".58" stop-color="#111827"/><stop offset="1" stop-color="${accent}"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#posterBg)"/><circle cx="${170 + index * 28}" cy="170" r="118" fill="${secondary}" opacity=".12"/><circle cx="915" cy="910" r="180" fill="${accent}" opacity=".22"/><rect x="74" y="74" width="932" height="932" rx="58" fill="none" stroke="${secondary}" stroke-opacity=".24" stroke-width="2"/><text x="108" y="158" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" fill="${secondary}">${name}</text><text x="108" y="420" font-family="Inter, Arial, sans-serif" font-size="84" font-weight="900" fill="${secondary}">${headline.slice(0, 22)}</text><text x="108" y="510" font-family="Inter, Arial, sans-serif" font-size="84" font-weight="900" fill="${secondary}">${headline.slice(22, 44)}</text><foreignObject x="108" y="590" width="760" height="180"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Inter,Arial,sans-serif;font-size:38px;line-height:1.28;color:${secondary};opacity:.82">${body.slice(0, 120)}</div></foreignObject><rect x="108" y="848" width="310" height="92" rx="46" fill="${secondary}"/><text x="263" y="907" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="850" fill="${primary}">${cta.slice(0, 18)}</text><text x="108" y="980" font-family="Inter, Arial, sans-serif" font-size="24" fill="${secondary}" opacity=".72">1080 x 1080 ready-to-post creative</text></svg>`;
 }
 
-function withGeneratedProductImages(products, brand) {
+function withGeneratedProductImages(products, brand, userAssets = {}) {
+    const uploadedImages = Array.isArray(userAssets.productImages) ? userAssets.productImages : [];
     return products.map((product, index) => {
+        const uploaded = uploadedImages[index] || uploadedImages[0];
         const imageSvg = product.imageSvg || makeProductImageSvg(product, brand, index);
         return {
             ...product,
+            uploadedImageName: uploaded?.name || product.uploadedImageName || '',
             imageSvg,
-            imageDataUrl: product.imageDataUrl || svgToDataUrl(imageSvg),
+            imageDataUrl: isImageDataUrl(uploaded?.dataUrl) ? uploaded.dataUrl : product.imageDataUrl || svgToDataUrl(imageSvg),
+            imageSource: isImageDataUrl(uploaded?.dataUrl) ? 'uploaded' : product.imageSource || 'generated',
         };
     });
 }
@@ -314,7 +338,7 @@ function buildVideoHeroHtml({ appName, project, brand, website, domain, productH
         <div class="vh-content">
             <nav class="vh-nav">
                 <a class="vh-logo" href="#top" aria-label="${escapeHtml(appName)} home">
-                    ${brand.logoSvg || escapeHtml(appName.slice(0, 2).toUpperCase())}
+                    ${brandLogoHtml(brand)}
                 </a>
                 <div class="vh-pill">
                     ${navLinks.map((link) => `<a href="#${slugify(link)}">${escapeHtml(link)}</a>`).join('')}
@@ -376,7 +400,7 @@ function pageShell({ title, description, bodyClass = '', body, brand, seo }) {
 </html>`;
 }
 
-function premiumNav(appName, domain, active = '') {
+function premiumNav(appName, domain, active = '', brand = null) {
     const links = [
         ['index.html', 'Landing'],
         ['products.html', domain.key === 'clothing' ? 'Collection' : 'Products'],
@@ -388,7 +412,7 @@ function premiumNav(appName, domain, active = '') {
 
     return `<header class="premium-nav">
         <a class="premium-brand" href="index.html">
-            <span>${escapeHtml(appName.slice(0, 2).toUpperCase())}</span>
+            <span>${brand ? brandLogoHtml(brand) : escapeHtml(appName.slice(0, 2).toUpperCase())}</span>
             ${escapeHtml(appName)}
         </a>
         <nav>
@@ -408,7 +432,7 @@ function buildLoadingPage({ appName, brand, website, seo }) {
             <video class="motion-bg" src="${PREMIUM_MOTION_VIDEOS[0]}" autoplay muted loop playsinline></video>
             <div class="motion-overlay"></div>
             <div class="loading-brand">
-                <div class="loading-mark">${brand.logoSvg || escapeHtml(appName.slice(0, 2).toUpperCase())}</div>
+                <div class="loading-mark">${brandLogoHtml(brand)}</div>
                 <p>Launching</p>
                 <h1>${escapeHtml(appName)}</h1>
                 <div class="loading-bar"><span></span></div>
@@ -424,7 +448,7 @@ function buildProductsPage({ appName, brand, website, domain, productHtml, seo }
         brand,
         seo,
         bodyClass: 'premium-page products-page',
-        body: `${premiumNav(appName, domain, 'products.html')}
+        body: `${premiumNav(appName, domain, 'products.html', brand)}
         <main class="page-hero compact">
             <video class="motion-bg" src="${PREMIUM_MOTION_VIDEOS[1]}" autoplay muted loop playsinline></video>
             <div class="motion-overlay"></div>
@@ -448,7 +472,7 @@ function buildPaymentPage({ appName, brand, domain, products, seo }) {
         brand,
         seo,
         bodyClass: 'premium-page payment-page',
-        body: `${premiumNav(appName, domain, 'payment.html')}
+        body: `${premiumNav(appName, domain, 'payment.html', brand)}
         <main class="checkout-layout">
             <section class="checkout-summary">
                 <p class="eyebrow">Secure checkout</p>
@@ -477,7 +501,7 @@ function buildContactPage({ appName, brand, website, domain, seo }) {
         brand,
         seo,
         bodyClass: 'premium-page contact-page',
-        body: `${premiumNav(appName, domain, 'contact.html')}
+        body: `${premiumNav(appName, domain, 'contact.html', brand)}
         <main class="contact-layout">
             <section>
                 <p class="eyebrow">Contact us</p>
@@ -502,7 +526,7 @@ function buildAuthPage({ appName, brand, domain, type, seo }) {
         brand,
         seo,
         bodyClass: `premium-page auth-page ${isSignup ? 'signup-page' : 'login-page'}`,
-        body: `${premiumNav(appName, domain, isSignup ? 'signup.html' : 'login.html')}
+        body: `${premiumNav(appName, domain, isSignup ? 'signup.html' : 'login.html', brand)}
         <main class="auth-layout">
             <section class="auth-panel">
                 <p class="eyebrow">${isSignup ? 'Start now' : 'Welcome back'}</p>
@@ -573,7 +597,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
 <body>
     <header class="site-header">
         <a class="brand" href="#top" aria-label="${escapeHtml(appName)} home">
-            <span class="brand-mark">${escapeHtml(appName.slice(0, 2).toUpperCase())}</span>
+            <span class="brand-mark">${brandLogoHtml(brand)}</span>
             <span>${escapeHtml(appName)}</span>
         </a>
         <nav>
@@ -732,6 +756,24 @@ button, input { font: inherit; }
     border-radius: 0.65rem;
     color: white;
     background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.brand-mark img,
+.vh-logo img,
+.premium-brand span img,
+.loading-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
+}
+
+.brand-mark svg,
+.vh-logo svg,
+.premium-brand span svg,
+.loading-mark svg {
+    width: 72%;
+    height: 72%;
 }
 
 nav { gap: 1.25rem; color: var(--muted); font-size: 0.92rem; }
@@ -924,11 +966,6 @@ p { color: var(--muted); line-height: 1.65; }
     border-radius: 999px;
     background: #ededed;
     overflow: hidden;
-}
-
-.vh-logo svg {
-    width: 1.5rem;
-    height: 1.5rem;
 }
 
 .vh-pill {
@@ -1641,6 +1678,7 @@ PORT=5000`,
 
 function normalizeKit(raw, project, source, variant = makeDesignVariant(project?.avoidTemplateKey || '')) {
     const domainProfile = detectDomain(project);
+    const userAssets = userAssetsFrom(project);
     const palette = raw?.brand?.palette || {};
     const brand = {
         websiteName: raw?.brand?.websiteName || project.name,
@@ -1663,7 +1701,9 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant(project?
     };
     const logoSvg = raw?.brand?.logoSvg || makeLogoSvg(brand.websiteName, brand.palette, variant, domainProfile);
     brand.logoSvg = logoSvg;
-    brand.logoDataUrl = raw?.brand?.logoDataUrl || svgToDataUrl(logoSvg);
+    brand.logoDataUrl = userAssets.logoDataUrl || raw?.brand?.logoDataUrl || svgToDataUrl(logoSvg);
+    brand.logoSource = userAssets.logoDataUrl ? 'uploaded' : raw?.brand?.logoSource || 'generated';
+    brand.uploadedLogoDataUrl = userAssets.logoDataUrl || raw?.brand?.uploadedLogoDataUrl || '';
 
     const website = {
         urlPath: raw?.website?.urlPath || `/sites/${slugify(brand.websiteName)}`,
@@ -1705,7 +1745,7 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant(project?
             productImagePrompt: product.productImagePrompt || fallback.productImagePrompt,
         };
     });
-    const products = withGeneratedProductImages([...normalizedBaseProducts, ...fallbackProducts].slice(0, 5), brand);
+    const products = withGeneratedProductImages([...normalizedBaseProducts, ...fallbackProducts].slice(0, 5), brand, userAssets);
     const marketing = withGeneratedInstagramPosts(raw?.marketing || {
         personas: ['Time-strapped founder', 'Growth marketer', 'Agency operator'],
         ads: [
