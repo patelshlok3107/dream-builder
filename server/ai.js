@@ -3,9 +3,16 @@ const DEFAULT_MODEL = 'google/gemini-3.1-pro-preview';
 const crypto = require('crypto');
 
 const VIDEO_HERO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4';
+const MAINFRAME_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260530_042513_df96a13b-6155-4f6e-8b93-c9dee66fba08.mp4';
+const PREMIUM_MOTION_VIDEOS = [
+    'https://cdn.dribbble.com/userupload/3772714/file/large-0707f1d09e19623f2573c4d1bea27846.mp4',
+    'https://cdn.dribbble.com/userupload/43016702/file/original-c7b6b86783cd88b7ca9c4e29309a3032.mp4',
+    'https://cdn.dribbble.com/userupload/31416961/file/original-a88dd8b1ccfb88ba01c91b844c00d14f.mp4',
+];
 const WEBSITE_TEMPLATES = [
     { key: 'company-dashboard', label: 'Company dashboard' },
     { key: 'video-hero-pill', label: 'Muted video hero with pill nav' },
+    { key: 'mainframe-scrub', label: 'Mainframe video agency' },
     { key: 'dark-editorial', label: 'Dark creator editorial' },
     { key: 'playful-showcase', label: 'Colorful product showcase' },
 ];
@@ -350,6 +357,164 @@ function buildVideoHeroHtml({ appName, project, brand, website, domain, productH
     <script src="./app.js" defer></script>
 </body>
 </html>`;
+}
+
+function pageShell({ title, description, bodyClass = '', body, brand, seo }) {
+    return `<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtml(title)}</title>
+    <meta name="description" content="${escapeHtml(description || seo?.description || '')}">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="${bodyClass}">
+    ${body}
+    <script src="./app.js" defer></script>
+</body>
+</html>`;
+}
+
+function premiumNav(appName, domain, active = '') {
+    const links = [
+        ['index.html', 'Landing'],
+        ['products.html', domain.key === 'clothing' ? 'Collection' : 'Products'],
+        ['payment.html', 'Payment'],
+        ['contact.html', 'Contact'],
+        ['login.html', 'Login'],
+        ['signup.html', 'Sign up'],
+    ];
+
+    return `<header class="premium-nav">
+        <a class="premium-brand" href="index.html">
+            <span>${escapeHtml(appName.slice(0, 2).toUpperCase())}</span>
+            ${escapeHtml(appName)}
+        </a>
+        <nav>
+            ${links.map(([href, label]) => `<a class="${active === href ? 'active' : ''}" href="${href}">${escapeHtml(label)}</a>`).join('')}
+        </nav>
+    </header>`;
+}
+
+function buildLoadingPage({ appName, brand, website, seo }) {
+    return pageShell({
+        title: `${appName} | Loading`,
+        description: website.subheadline,
+        brand,
+        seo,
+        bodyClass: 'premium-page loading-page',
+        body: `<main class="loading-screen">
+            <video class="motion-bg" src="${PREMIUM_MOTION_VIDEOS[0]}" autoplay muted loop playsinline></video>
+            <div class="motion-overlay"></div>
+            <div class="loading-brand">
+                <div class="loading-mark">${brand.logoSvg || escapeHtml(appName.slice(0, 2).toUpperCase())}</div>
+                <p>Launching</p>
+                <h1>${escapeHtml(appName)}</h1>
+                <div class="loading-bar"><span></span></div>
+            </div>
+        </main>`,
+    });
+}
+
+function buildProductsPage({ appName, brand, website, domain, productHtml, seo }) {
+    return pageShell({
+        title: `${appName} | ${domain.key === 'clothing' ? 'Collection' : 'Products'}`,
+        description: website.subheadline,
+        brand,
+        seo,
+        bodyClass: 'premium-page products-page',
+        body: `${premiumNav(appName, domain, 'products.html')}
+        <main class="page-hero compact">
+            <video class="motion-bg" src="${PREMIUM_MOTION_VIDEOS[1]}" autoplay muted loop playsinline></video>
+            <div class="motion-overlay"></div>
+            <section class="page-copy">
+                <p class="eyebrow">${escapeHtml(domain.eyebrow)}</p>
+                <h1>${escapeHtml(domain.productHeading)}</h1>
+                <p>${escapeHtml(website.subheadline)}</p>
+            </section>
+        </main>
+        <section class="pricing page-section">
+            <div class="pricing-grid">${productHtml}</div>
+        </section>`,
+    });
+}
+
+function buildPaymentPage({ appName, brand, domain, products, seo }) {
+    const featured = products[0] || { name: `${appName} Starter`, price: '$49', value: 'Launch offer' };
+    return pageShell({
+        title: `${appName} | Payment`,
+        description: `Checkout for ${featured.name}`,
+        brand,
+        seo,
+        bodyClass: 'premium-page payment-page',
+        body: `${premiumNav(appName, domain, 'payment.html')}
+        <main class="checkout-layout">
+            <section class="checkout-summary">
+                <p class="eyebrow">Secure checkout</p>
+                <h1>${escapeHtml(featured.name)}</h1>
+                <p>${escapeHtml(featured.value)}</p>
+                ${featured.imageDataUrl ? `<img src="${featured.imageDataUrl}" alt="${escapeHtml(featured.name)}">` : ''}
+            </section>
+            <section class="payment-card">
+                <div class="payment-row"><span>Subtotal</span><strong>${escapeHtml(featured.price)}</strong></div>
+                <div class="payment-row"><span>Launch discount</span><strong>Included</strong></div>
+                <label>Card number<input value="4242 4242 4242 4242" readonly></label>
+                <div class="payment-grid">
+                    <label>Expiry<input value="12 / 30" readonly></label>
+                    <label>CVC<input value="123" readonly></label>
+                </div>
+                <button type="button">Pay and launch</button>
+            </section>
+        </main>`,
+    });
+}
+
+function buildContactPage({ appName, brand, website, domain, seo }) {
+    return pageShell({
+        title: `${appName} | Contact`,
+        description: `Contact ${appName}`,
+        brand,
+        seo,
+        bodyClass: 'premium-page contact-page',
+        body: `${premiumNav(appName, domain, 'contact.html')}
+        <main class="contact-layout">
+            <section>
+                <p class="eyebrow">Contact us</p>
+                <h1>Talk to ${escapeHtml(appName)}.</h1>
+                <p>${escapeHtml(website.subheadline)}</p>
+            </section>
+            <form class="contact-form">
+                <input placeholder="Name">
+                <input placeholder="Email">
+                <textarea placeholder="Tell us what you want to build"></textarea>
+                <button type="button">Send message</button>
+            </form>
+        </main>`,
+    });
+}
+
+function buildAuthPage({ appName, brand, domain, type, seo }) {
+    const isSignup = type === 'signup';
+    return pageShell({
+        title: `${appName} | ${isSignup ? 'Sign up' : 'Login'}`,
+        description: `${isSignup ? 'Create an account' : 'Login'} for ${appName}`,
+        brand,
+        seo,
+        bodyClass: `premium-page auth-page ${isSignup ? 'signup-page' : 'login-page'}`,
+        body: `${premiumNav(appName, domain, isSignup ? 'signup.html' : 'login.html')}
+        <main class="auth-layout">
+            <section class="auth-panel">
+                <p class="eyebrow">${isSignup ? 'Start now' : 'Welcome back'}</p>
+                <h1>${isSignup ? `Join ${escapeHtml(appName)}` : `Login to ${escapeHtml(appName)}`}</h1>
+                <input placeholder="Email">
+                <input placeholder="Password" type="password">
+                ${isSignup ? '<input placeholder="Brand or company name">' : ''}
+                <button type="button">${isSignup ? 'Create account' : 'Login'}</button>
+                <a href="${isSignup ? 'login.html' : 'signup.html'}">${isSignup ? 'Already have an account?' : 'Need an account?'}</a>
+            </section>
+        </main>`,
+    });
 }
 
 function buildWebsiteFiles(project, brand, website, products, marketing, seo, launch, scale) {
@@ -917,6 +1082,338 @@ p { color: var(--muted); line-height: 1.65; }
 }`;
     }
 
+    css += `
+
+.premium-page {
+    min-height: 100vh;
+    background: #050505;
+    color: #f8fafc;
+}
+
+.premium-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem clamp(1rem, 4vw, 2.5rem);
+    color: #050505;
+}
+
+.premium-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 850;
+    letter-spacing: -0.03em;
+}
+
+.premium-brand span {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.premium-nav nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    font-size: clamp(0.86rem, 2vw, 1.1rem);
+}
+
+.premium-nav nav a {
+    border-radius: 999px;
+    padding: 0.5rem 0.8rem;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(12px);
+}
+
+.premium-nav nav a.active {
+    background: #050505;
+    color: #fff;
+}
+
+.motion-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 70% center;
+}
+
+.motion-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(255,255,255,.82), rgba(255,255,255,.32), rgba(0,0,0,.12));
+}
+
+.loading-screen,
+.page-hero,
+.checkout-layout,
+.contact-layout,
+.auth-layout {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+}
+
+.loading-brand {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    min-height: 100vh;
+    place-content: center;
+    padding: 2rem;
+    text-align: center;
+    color: #050505;
+}
+
+.loading-mark {
+    display: grid;
+    place-items: center;
+    width: 7rem;
+    height: 7rem;
+    margin: 0 auto 1rem;
+    border-radius: 2rem;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(18px);
+}
+
+.loading-mark svg {
+    width: 4rem;
+    height: 4rem;
+}
+
+.loading-brand p {
+    color: #111827;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 850;
+}
+
+.loading-brand h1 {
+    max-width: none;
+    margin-bottom: 1.2rem;
+    color: #050505;
+    font-size: clamp(3.4rem, 13vw, 11rem);
+    letter-spacing: -0.07em;
+}
+
+.loading-bar {
+    width: min(28rem, 72vw);
+    height: 0.35rem;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.loading-bar span {
+    display: block;
+    width: 48%;
+    height: 100%;
+    border-radius: inherit;
+    background: #050505;
+    animation: loading-run 1.8s ease-in-out infinite;
+}
+
+@keyframes loading-run {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(220%); }
+}
+
+.page-hero {
+    display: flex;
+    align-items: end;
+    min-height: 78vh;
+    padding: 8rem clamp(1rem, 5vw, 4rem) 4rem;
+}
+
+.page-hero.compact {
+    min-height: 64vh;
+}
+
+.page-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 54rem;
+    color: #050505;
+}
+
+.page-copy h1 {
+    max-width: 11ch;
+    color: #050505;
+    font-size: clamp(4rem, 12vw, 11rem);
+    letter-spacing: -0.07em;
+    text-transform: uppercase;
+}
+
+.page-copy p {
+    max-width: 36rem;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
+.page-section {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: clamp(1rem, 5vw, 4rem);
+    background: #f4f4f2;
+    color: #050505;
+}
+
+.checkout-layout,
+.contact-layout,
+.auth-layout {
+    display: grid;
+    align-items: center;
+    gap: clamp(1rem, 5vw, 4rem);
+    padding: 7rem clamp(1rem, 5vw, 4rem) 3rem;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.22), transparent 24rem),
+        linear-gradient(135deg, var(--primary), #050505);
+}
+
+.checkout-layout,
+.contact-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.72fr);
+}
+
+.checkout-summary,
+.payment-card,
+.contact-form,
+.auth-panel {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 1.4rem;
+    background: rgba(255, 255, 255, 0.11);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(24px);
+}
+
+.checkout-summary,
+.payment-card,
+.contact-form,
+.auth-panel,
+.contact-layout > section {
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+}
+
+.checkout-summary h1,
+.contact-layout h1,
+.auth-panel h1 {
+    max-width: 10ch;
+    color: white;
+    font-size: clamp(3rem, 9vw, 7rem);
+    letter-spacing: -0.06em;
+}
+
+.checkout-summary p,
+.contact-layout p,
+.auth-panel p {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.checkout-summary img {
+    width: min(32rem, 100%);
+    margin-top: 2rem;
+    border-radius: 1.2rem;
+}
+
+.payment-card,
+.contact-form,
+.auth-panel {
+    display: grid;
+    gap: 1rem;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    color: white;
+}
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.payment-card label,
+.contact-form input,
+.contact-form textarea,
+.auth-panel input,
+.payment-card input {
+    width: 100%;
+}
+
+.payment-card label,
+.auth-panel label {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.85rem;
+}
+
+.payment-card input,
+.contact-form input,
+.contact-form textarea,
+.auth-panel input {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.8rem;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    padding: 0.95rem 1rem;
+    outline: none;
+}
+
+.contact-form textarea {
+    min-height: 10rem;
+    resize: vertical;
+}
+
+.payment-card button,
+.contact-form button,
+.auth-panel button {
+    border: 0;
+    border-radius: 0.85rem;
+    background: white;
+    color: #050505;
+    padding: 1rem 1.1rem;
+    font-weight: 850;
+}
+
+.auth-layout {
+    grid-template-columns: minmax(18rem, 34rem);
+    justify-content: center;
+}
+
+.auth-panel a {
+    color: rgba(255, 255, 255, 0.76);
+    text-align: center;
+}
+
+@media (max-width: 840px) {
+    .premium-nav {
+        align-items: flex-start;
+    }
+    .premium-nav nav {
+        max-width: 16rem;
+    }
+    .checkout-layout,
+    .contact-layout {
+        grid-template-columns: 1fr;
+    }
+}`;
+
     const js = `const form = document.querySelector('.demo form');
 const score = document.querySelector('#readiness-score');
 
@@ -936,7 +1433,36 @@ if (form) {
         alert('Thanks, ' + email + '. The launch team will follow up shortly.');
         form.reset();
     });
+}
+
+if (document.body.classList.contains('loading-page')) {
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 2200);
 }`;
+
+    const pageFiles = {
+        'loading.html': buildLoadingPage({ appName, brand, website, seo }),
+        'products.html': buildProductsPage({ appName, brand, website, domain, productHtml, seo }),
+        'payment.html': buildPaymentPage({ appName, brand, domain, products: productList, seo }),
+        'contact.html': buildContactPage({ appName, brand, website, domain, seo }),
+        'login.html': buildAuthPage({ appName, brand, domain, type: 'login', seo }),
+        'signup.html': buildAuthPage({ appName, brand, domain, type: 'signup', seo }),
+    };
+
+    const inlinePage = (html) => html
+        .replace('<link rel="stylesheet" href="./styles.css">', `<style>${css}</style>`)
+        .replace('<script src="./app.js" defer></script>', `<script>${js}</script>`);
+
+    const previewPages = {
+        Loading: inlinePage(pageFiles['loading.html']),
+        Landing: inlinePage(indexHtml),
+        Products: inlinePage(pageFiles['products.html']),
+        Payment: inlinePage(pageFiles['payment.html']),
+        Contact: inlinePage(pageFiles['contact.html']),
+        Login: inlinePage(pageFiles['login.html']),
+        Signup: inlinePage(pageFiles['signup.html']),
+    };
 
     const types = `export interface Plan {
     name: string;
@@ -1049,9 +1575,7 @@ Generated company-level launch site for ${project.category}.
 Open \`index.html\` directly, or serve the folder with any static server.
 Use the SQL files to create the backend database tables before wiring the API to your DB adapter.`;
 
-    const previewHtml = indexHtml
-        .replace('<link rel="stylesheet" href="./styles.css">', `<style>${css}</style>`)
-        .replace('<script src="./app.js" defer></script>', `<script>${js}</script>`);
+    const previewHtml = previewPages.Landing;
     const productAssets = Object.fromEntries(productList.map((product, index) => [
         `assets/products/product-${index + 1}.svg`,
         product.imageSvg || makeProductImageSvg(product, brand, index),
@@ -1064,6 +1588,8 @@ Use the SQL files to create the backend database tables before wiring the API to
     return {
         'index.html': indexHtml,
         'preview.html': previewHtml,
+        previewPages,
+        ...pageFiles,
         'styles.css': css,
         'app.js': js,
         'src/main.ts': mainTs,
@@ -1203,12 +1729,16 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant(project?
         experiments: ['Niche-specific landing pages', 'Product-led referral loop', 'Concierge onboarding package'],
     };
     const generatedFiles = buildWebsiteFiles(project, brand, website, products, marketing, seo, launch, scale);
+    const { previewPages, ...generatedFileMap } = generatedFiles;
     website.files = {
-        ...generatedFiles,
+        ...generatedFileMap,
         ...(raw?.website?.files && typeof raw.website.files === 'object' ? raw.website.files : {}),
     };
     website.html = website.files['index.html'] || website.html;
     website.previewHtml = website.files['preview.html'] || website.html;
+    website.previewPages = previewPages || {
+        Landing: website.previewHtml,
+    };
 
     return {
         source,

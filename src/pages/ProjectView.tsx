@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Trash2, Loader2, Globe2, Megaphone, Palette, Package, Download, RotateCcw } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
@@ -9,6 +10,7 @@ export default function ProjectView() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const { project, loading, error, advanceStep, refresh, regenerate, regenerating } = useProject(id)
+    const [selectedPreviewPage, setSelectedPreviewPage] = useState('Landing')
 
     async function handleDelete() {
         if (!project) return
@@ -67,6 +69,12 @@ export default function ProjectView() {
     const palette = Object.entries(project.brand_colors || identity.palette || {}).filter(([, value]) => typeof value === 'string') as [string, string][]
     const logoSrc = project.logo_url || logo.logoDataUrl || identity.logoDataUrl
     const websiteHtml = typeof website.html === 'string' ? website.html : ''
+    const previewPages: Record<string, string> = website.previewPages && typeof website.previewPages === 'object'
+        ? website.previewPages as Record<string, string>
+        : { Landing: website.previewHtml || websiteHtml }
+    const previewPageEntries = Object.entries(previewPages).filter(([, html]) => typeof html === 'string' && html.length > 0)
+    const activePreviewPage = previewPages[selectedPreviewPage] ? selectedPreviewPage : previewPageEntries[0]?.[0] || 'Landing'
+    const activePreviewHtml = previewPages[activePreviewPage] || website.previewHtml || websiteHtml
     const instagramPosts = Array.isArray(marketing.instagramPosts) ? marketing.instagramPosts : Array.isArray(marketing.ads) ? marketing.ads : []
     const websiteFiles = website.files && typeof website.files === 'object' ? website.files as Record<string, string> : {}
     const websiteFileEntries = Object.entries(websiteFiles)
@@ -81,7 +89,7 @@ export default function ProjectView() {
 
     return (
         <AppLayout>
-            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
+            <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
@@ -151,7 +159,7 @@ export default function ProjectView() {
                             </div>
                         </div>
 
-                        <div className="grid lg:grid-cols-3 gap-4">
+                        <div className="grid lg:grid-cols-4 gap-4">
                             <div className="glass-card p-4 space-y-4">
                                 <div className="flex items-center gap-2 text-sm font-medium">
                                     <Palette className="w-4 h-4 text-gray-400" /> Identity
@@ -174,17 +182,31 @@ export default function ProjectView() {
                                 <p className="text-sm text-gray-300">{identity.positioning || project.tagline}</p>
                             </div>
 
-                            <div className="glass-card p-4 space-y-4 lg:col-span-2">
+                            <div className="glass-card p-4 space-y-4 lg:col-span-3">
                                 <div className="flex items-center gap-2 text-sm font-medium">
                                     <Globe2 className="w-4 h-4 text-gray-400" /> Website Preview
                                 </div>
-                                {website.previewHtml || websiteHtml ? (
+                                {previewPageEntries.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {previewPageEntries.map(([page]) => (
+                                            <button
+                                                key={page}
+                                                type="button"
+                                                onClick={() => setSelectedPreviewPage(page)}
+                                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${activePreviewPage === page ? 'bg-white text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {activePreviewHtml ? (
                                     <div className="rounded-lg border border-white/10 overflow-hidden bg-white">
                                         <iframe
-                                            title={`${project.name} website preview`}
-                                            srcDoc={website.previewHtml || websiteHtml}
+                                            title={`${project.name} ${activePreviewPage} preview`}
+                                            srcDoc={activePreviewHtml}
                                             sandbox="allow-scripts allow-forms"
-                                            className="w-full h-[520px] bg-white"
+                                            className="w-full h-[calc(100vh-180px)] min-h-[720px] bg-white"
                                         />
                                     </div>
                                 ) : (
