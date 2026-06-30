@@ -30,6 +30,89 @@ const DESIGN_VARIANTS = [
     },
 ];
 
+const DOMAIN_PROFILES = {
+    clothing: {
+        keywords: ['clothing', 'fashion', 'apparel', 'streetwear', 'hoodie', 't-shirt', 'tee', 'shirt', 'sneaker', 'boutique', 'garment', 'wear', 'brand drop'],
+        label: 'Clothing',
+        eyebrow: 'Fashion label',
+        nav: ['Collection', 'Lookbook', 'Drops'],
+        productHeading: 'Shop the first drop.',
+        platformHeading: 'A brand world built around product, fit, and culture.',
+        campaignHeading: 'Instagram creatives ready for the next drop.',
+        heroPanelTitle: 'New collection',
+        heroPanelItems: ['Oversized hoodie', 'Heavyweight tee', 'Logo cap'],
+        logoMotif: 'hanger, garment tag, stitched monogram',
+        products: [
+            { suffix: 'Signature Hoodie', price: '$89', value: 'Premium fleece hoodie with embroidered logo, oversized fit, and drop-ready colorway.', itemType: 'hoodie' },
+            { suffix: 'Heavyweight Tee', price: '$42', value: 'Structured cotton tee with front chest mark and oversized back graphic.', itemType: 'tee' },
+            { suffix: 'Logo Cap', price: '$34', value: 'Six-panel cap with stitched brand mark and adjustable strap.', itemType: 'cap' },
+            { suffix: 'Everyday Tote', price: '$28', value: 'Canvas tote with bold campaign artwork for daily carry and launch merch.', itemType: 'tote' },
+            { suffix: 'Drop Jacket', price: '$128', value: 'Lightweight statement jacket with contrast panels and limited-run detailing.', itemType: 'jacket' },
+        ],
+        hashtags: ['#streetwear', '#fashionbrand', '#newdrop', '#ootd'],
+    },
+    food: {
+        keywords: ['restaurant', 'food', 'cafe', 'coffee', 'bakery', 'meal', 'kitchen', 'delivery', 'dining'],
+        label: 'Food',
+        eyebrow: 'Food brand',
+        nav: ['Menu', 'Story', 'Order'],
+        productHeading: 'Signature menu items.',
+        platformHeading: 'A flavorful brand system for hungry customers.',
+        campaignHeading: 'Post-ready food campaign creatives.',
+        heroPanelTitle: 'Today\'s specials',
+        heroPanelItems: ['Signature plate', 'Chef special', 'Fresh drink'],
+        logoMotif: 'plate, steam, chef mark',
+        products: [
+            { suffix: 'Signature Bowl', price: '$14', value: 'Hero menu item built for dine-in, pickup, and social photography.', itemType: 'bowl' },
+            { suffix: 'Chef Special', price: '$18', value: 'High-margin featured dish with bold flavor and premium plating.', itemType: 'plate' },
+            { suffix: 'Fresh Drink', price: '$7', value: 'Branded beverage designed for repeat orders and visual appeal.', itemType: 'drink' },
+            { suffix: 'Tasting Box', price: '$24', value: 'Curated sampler for first-time customers and delivery campaigns.', itemType: 'box' },
+            { suffix: 'Party Pack', price: '$59', value: 'Group-size offer for events, offices, and weekend gatherings.', itemType: 'pack' },
+        ],
+        hashtags: ['#foodie', '#freshmenu', '#localfood', '#dining'],
+    },
+    fitness: {
+        keywords: ['fitness', 'gym', 'workout', 'training', 'yoga', 'wellness', 'coach', 'sports'],
+        label: 'Fitness',
+        eyebrow: 'Fitness brand',
+        nav: ['Programs', 'Results', 'Join'],
+        productHeading: 'Programs and membership offers.',
+        platformHeading: 'A performance brand for consistent progress.',
+        campaignHeading: 'Motivational social creatives.',
+        heroPanelTitle: 'Training plan',
+        heroPanelItems: ['Strength block', 'Mobility day', 'Coach check-in'],
+        logoMotif: 'motion mark, strength symbol',
+        products: [
+            { suffix: 'Starter Plan', price: '$39/mo', value: 'Beginner training plan with weekly structure and habit tracking.', itemType: 'plan' },
+            { suffix: 'Strength Program', price: '$89/mo', value: 'Progressive strength plan with guided workouts and performance metrics.', itemType: 'strength' },
+            { suffix: 'Nutrition Add-on', price: '$49/mo', value: 'Meal guidance, macro targets, and weekly accountability.', itemType: 'nutrition' },
+            { suffix: 'Group Class Pass', price: '$99/mo', value: 'Flexible access to high-energy classes and community workouts.', itemType: 'class' },
+            { suffix: 'Elite Coaching', price: 'Custom', value: 'Personalized coaching with form review, testing, and custom programming.', itemType: 'coach' },
+        ],
+        hashtags: ['#fitness', '#training', '#wellness', '#workout'],
+    },
+    default: {
+        keywords: [],
+        label: 'SaaS',
+        eyebrow: 'Company platform',
+        nav: ['Platform', 'Products', 'Campaigns'],
+        productHeading: 'Five launch-ready products.',
+        platformHeading: 'Everything a serious company needs to launch with confidence.',
+        campaignHeading: 'Campaign angles ready for paid, organic, and outbound channels.',
+        heroPanelTitle: 'Launch readiness',
+        heroPanelItems: ['Brand system approved', 'Campaigns queued', 'Database ready'],
+        logoMotif: 'abstract growth mark',
+        products: [
+            { suffix: 'Core', price: '$29/mo', value: 'Essential workspace for validating the idea and collecting leads.', itemType: 'core' },
+            { suffix: 'Flow', price: '$79/mo', value: 'Workflow automation, dashboards, and team collaboration for active operators.', itemType: 'flow' },
+            { suffix: 'Growth', price: '$149/mo', value: 'Campaign planning, CRM capture, reporting, and conversion experiments.', itemType: 'growth' },
+            { suffix: 'Data', price: '$249/mo', value: 'Database-backed insights, customer segments, and executive scorecards.', itemType: 'data' },
+            { suffix: 'Enterprise', price: 'Custom', value: 'Custom onboarding, security, integrations, and high-touch launch support.', itemType: 'enterprise' },
+        ],
+        hashtags: ['#startup', '#saas', '#growth', '#launch'],
+    },
+};
+
 function slugify(value) {
     return String(value || 'startup')
         .toLowerCase()
@@ -61,7 +144,35 @@ function makeDesignVariant() {
     };
 }
 
-function makeLogoSvg(name, palette, variant = {}) {
+function detectDomain(project) {
+    const text = [
+        project?.name,
+        project?.category,
+        project?.tagline,
+        project?.description,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    for (const [key, profile] of Object.entries(DOMAIN_PROFILES)) {
+        if (key === 'default') continue;
+        if (profile.keywords.some((keyword) => text.includes(keyword))) {
+            return { key, ...profile };
+        }
+    }
+    return { key: 'default', ...DOMAIN_PROFILES.default };
+}
+
+function domainProducts(brand) {
+    const profile = brand.domainProfile || DOMAIN_PROFILES.default;
+    return profile.products.map((product) => ({
+        name: `${brand.websiteName} ${product.suffix}`,
+        price: product.price,
+        value: product.value,
+        itemType: product.itemType,
+        productImagePrompt: `${profile.label} product image for ${brand.websiteName} ${product.suffix}: ${product.value}`,
+    }));
+}
+
+function makeLogoSvg(name, palette, variant = {}, domainProfile = DOMAIN_PROFILES.default) {
     const initials = String(name || 'AI')
         .split(/\s+/)
         .map((part) => part[0])
@@ -72,6 +183,10 @@ function makeLogoSvg(name, palette, variant = {}) {
     const secondary = palette?.secondary || '#f8fafc';
     const accent = palette?.accent || '#f97316';
     const angle = variant.angle || 135;
+
+    if (domainProfile.key === 'clothing') {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="${escapeHtml(name)} clothing logo"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1" gradientTransform="rotate(${angle})"><stop stop-color="${primary}"/><stop offset="1" stop-color="${accent}"/></linearGradient></defs><rect width="512" height="512" rx="88" fill="url(#g)"/><path d="M256 122c0-28 24-50 54-50 24 0 44 14 52 34" fill="none" stroke="${secondary}" stroke-width="24" stroke-linecap="round"/><path d="M256 148 128 238c-16 11-8 36 12 36h232c20 0 28-25 12-36L256 148Z" fill="none" stroke="${secondary}" stroke-width="24" stroke-linejoin="round"/><path d="M152 286h208l-26 118H178l-26-118Z" fill="${secondary}" opacity=".9"/><path d="M206 286c8 28 28 44 50 44s42-16 50-44" fill="none" stroke="${primary}" stroke-width="18" stroke-linecap="round"/><text x="256" y="396" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="900" fill="${primary}">${escapeHtml(initials)}</text></svg>`;
+    }
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="${escapeHtml(name)} logo"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1" gradientTransform="rotate(${angle})"><stop stop-color="${primary}"/><stop offset="1" stop-color="${accent}"/></linearGradient></defs><rect width="512" height="512" rx="${72 + (angle % 42)}" fill="url(#g)"/><path d="M96 338c44-136 132-204 264-204 30 0 56 7 78 20-45 14-78 42-99 83-43 83-111 117-243 101Z" fill="${secondary}" opacity=".2"/><path d="M150 356c34-88 88-132 162-132 44 0 78 14 102 43-31-3-58 7-81 31-45 48-93 67-183 58Z" fill="${secondary}" opacity=".88"/><circle cx="375" cy="137" r="46" fill="${secondary}" opacity=".92"/><text x="256" y="305" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="112" font-weight="850" fill="${primary}">${escapeHtml(initials)}</text></svg>`;
 }
@@ -84,6 +199,19 @@ function makeProductImageSvg(product, brand, index) {
     const title = escapeHtml(product.name || `Product ${index + 1}`);
     const value = escapeHtml(product.value || 'Product concept');
     const y = 80 + index * 6;
+
+    if (brand.domainProfile?.key === 'clothing') {
+        const item = product.itemType || ['hoodie', 'tee', 'cap', 'tote', 'jacket'][index % 5];
+        const apparel = {
+            hoodie: `<path d="M418 250c20-78 74-122 182-122s162 44 182 122l88 42-62 138-66-28v230H458V402l-66 28-62-138 88-42Z" fill="${primary}"/><path d="M526 146c14 42 42 64 74 64s60-22 74-64" fill="none" stroke="${secondary}" stroke-width="28" stroke-linecap="round"/><path d="M520 306h160v210H520z" fill="${secondary}" opacity=".18"/><text x="600" y="432" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="900" fill="${secondary}">${escapeHtml((brand.websiteName || 'DB').slice(0, 2).toUpperCase())}</text>`,
+            tee: `<path d="M382 230 502 158h196l120 72 62 116-104 62-38-62v286H462V346l-38 62-104-62 62-116Z" fill="${primary}"/><path d="M520 158c12 44 44 70 80 70s68-26 80-70" fill="${secondary}" opacity=".88"/><text x="600" y="424" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="70" font-weight="900" fill="${secondary}">${escapeHtml((brand.websiteName || 'DB').slice(0, 2).toUpperCase())}</text>`,
+            cap: `<path d="M310 432c48-116 150-178 300-178 122 0 212 48 270 146-148-28-286-18-414 30-62 23-114 24-156 2Z" fill="${primary}"/><path d="M292 440c156 24 316 10 480-42 70-22 126-22 168 0-70 66-170 104-300 114-138 11-254-13-348-72Z" fill="${accent}"/><text x="604" y="381" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="60" font-weight="900" fill="${secondary}">${escapeHtml((brand.websiteName || 'DB').slice(0, 2).toUpperCase())}</text>`,
+            tote: `<rect x="392" y="244" width="416" height="390" rx="34" fill="${primary}"/><path d="M500 272c0-76 40-118 100-118s100 42 100 118" fill="none" stroke="${accent}" stroke-width="28" stroke-linecap="round"/><text x="600" y="470" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="900" fill="${secondary}">${escapeHtml((brand.websiteName || 'DB').slice(0, 2).toUpperCase())}</text>`,
+            jacket: `<path d="M430 180h130l40 76 40-76h130l84 104-70 76-40-42v316H456V318l-40 42-70-76 84-104Z" fill="${primary}"/><path d="M600 256v378" stroke="${secondary}" stroke-width="18" opacity=".8"/><path d="M510 346h70M620 346h70" stroke="${accent}" stroke-width="18" stroke-linecap="round"/><text x="600" y="498" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="900" fill="${secondary}">${escapeHtml((brand.websiteName || 'DB').slice(0, 2).toUpperCase())}</text>`,
+        }[item] || '';
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="${title} clothing product image"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${secondary}"/><stop offset="1" stop-color="${accent}" stop-opacity=".22"/></linearGradient></defs><rect width="1200" height="800" rx="54" fill="url(#bg)"/><rect x="70" y="70" width="1060" height="660" rx="44" fill="#fff" opacity=".78"/><text x="104" y="142" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="${primary}">DROP 0${index + 1}</text>${apparel}<text x="104" y="642" font-family="Inter, Arial, sans-serif" font-size="50" font-weight="900" fill="#111827">${title}</text><text x="104" y="694" font-family="Inter, Arial, sans-serif" font-size="24" fill="#5b6472">${value.slice(0, 86)}</text></svg>`;
+    }
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="${title} product image"><defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${secondary}"/><stop offset="1" stop-color="${primary}" stop-opacity=".18"/></linearGradient><linearGradient id="card" x1="0" x2="1"><stop stop-color="${primary}"/><stop offset="1" stop-color="${accent}"/></linearGradient></defs><rect width="1200" height="800" rx="54" fill="url(#bg)"/><rect x="96" y="${y}" width="1008" height="640" rx="42" fill="#fff" opacity=".94"/><rect x="140" y="${y + 44}" width="254" height="552" rx="30" fill="${primary}"/><circle cx="190" cy="${y + 96}" r="18" fill="${accent}"/><rect x="176" y="${y + 150}" width="150" height="18" rx="9" fill="#fff" opacity=".86"/><rect x="176" y="${y + 188}" width="96" height="12" rx="6" fill="#fff" opacity=".5"/><rect x="444" y="${y + 70}" width="430" height="42" rx="21" fill="${primary}" opacity=".16"/><text x="444" y="${y + 186}" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="850" fill="#111827">${title}</text><text x="444" y="${y + 246}" font-family="Inter, Arial, sans-serif" font-size="26" fill="#5b6472">${value.slice(0, 74)}</text><rect x="444" y="${y + 330}" width="180" height="28" rx="14" fill="${accent}"/><rect x="444" y="${y + 390}" width="540" height="24" rx="12" fill="#e5e7eb"/><rect x="444" y="${y + 438}" width="460" height="24" rx="12" fill="#e5e7eb"/><rect x="444" y="${y + 486}" width="320" height="24" rx="12" fill="#e5e7eb"/><path d="M874 ${y + 536}c61-130 134-175 218-137-53 22-76 67-104 107-25 35-59 47-114 30Z" fill="url(#card)" opacity=".9"/></svg>`;
 }
@@ -114,6 +242,7 @@ function withGeneratedProductImages(products, brand) {
 
 function withGeneratedInstagramPosts(marketing, brand) {
     const ads = Array.isArray(marketing.ads) ? marketing.ads : [];
+    const hashtags = brand.domainProfile?.hashtags || DOMAIN_PROFILES.default.hashtags;
     const instagramPosts = Array.isArray(marketing.instagramPosts) && marketing.instagramPosts.length
         ? marketing.instagramPosts
         : ads.map((ad, index) => ({
@@ -121,7 +250,7 @@ function withGeneratedInstagramPosts(marketing, brand) {
             headline: ad.headline,
             body: ad.body,
             cta: ad.cta,
-            caption: `${ad.headline}\n\n${ad.body}\n\n#startup #saas #growth`,
+            caption: `${ad.headline}\n\n${ad.body}\n\n${hashtags.join(' ')}`,
             size: '1080x1080',
             sourceAd: ad.channel,
             index,
@@ -151,6 +280,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
     const appName = brand.websiteName || project.name;
     const slug = slugify(appName);
     const palette = brand.palette || {};
+    const domain = brand.domainProfile || DOMAIN_PROFILES.default;
     const sections = Array.isArray(website.sections) ? website.sections : [];
     const productList = Array.isArray(products) ? products : [];
     const ads = Array.isArray(marketing?.ads) ? marketing.ads : [];
@@ -206,9 +336,9 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
             <span>${escapeHtml(appName)}</span>
         </a>
         <nav>
-            <a href="#platform">Platform</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#campaigns">Campaigns</a>
+            <a href="#platform">${escapeHtml(domain.nav[0])}</a>
+            <a href="#pricing">${escapeHtml(domain.nav[1])}</a>
+            <a href="#campaigns">${escapeHtml(domain.nav[2])}</a>
         </nav>
         <a class="header-cta" href="#demo">Book demo</a>
     </header>
@@ -216,7 +346,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
     <main id="top">
         <section class="hero">
             <div class="hero-copy">
-                <p class="eyebrow">${escapeHtml(project.category)} platform</p>
+                <p class="eyebrow">${escapeHtml(domain.eyebrow)}</p>
                 <h1>${escapeHtml(website.headline)}</h1>
                 <p>${escapeHtml(website.subheadline)}</p>
                 <div class="hero-actions">
@@ -229,8 +359,8 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
                     <span></span><span></span><span></span>
                 </div>
                 <div class="score-card">
-                    <p>Launch readiness</p>
-                    <strong id="readiness-score">87%</strong>
+                    <p>${escapeHtml(domain.heroPanelTitle)}</p>
+                    <strong id="readiness-score">${domain.key === 'clothing' ? 'DROP' : '87%'}</strong>
                 </div>
                 <div class="chart-bars">
                     <span style="height: 44%"></span>
@@ -240,9 +370,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
                     <span style="height: 91%"></span>
                 </div>
                 <ul class="panel-list">
-                    <li><span></span> Brand system approved</li>
-                    <li><span></span> Campaigns queued</li>
-                    <li><span></span> Database ready</li>
+                    ${domain.heroPanelItems.map((item) => `<li><span></span> ${escapeHtml(item)}</li>`).join('')}
                 </ul>
             </aside>
         </section>
@@ -250,7 +378,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
         <section id="platform" class="section-grid">
             <div>
                 <p class="eyebrow">Operating system</p>
-                <h2>Everything a serious company needs to launch with confidence.</h2>
+                <h2>${escapeHtml(domain.platformHeading)}</h2>
             </div>
             <div class="feature-grid">
                 ${sectionHtml}
@@ -259,7 +387,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
 
         <section id="pricing" class="pricing">
             <p class="eyebrow">Products</p>
-            <h2>Simple packages for validation, launch, and scale.</h2>
+            <h2>${escapeHtml(domain.productHeading)}</h2>
             <div class="pricing-grid">
                 ${productHtml}
             </div>
@@ -267,7 +395,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
 
         <section id="campaigns" class="campaigns">
             <p class="eyebrow">Marketing engine</p>
-            <h2>Campaign angles ready for paid, organic, and outbound channels.</h2>
+            <h2>${escapeHtml(domain.campaignHeading)}</h2>
             <div class="campaign-grid">
                 ${adHtml}
             </div>
@@ -492,10 +620,12 @@ p { color: var(--muted); line-height: 1.65; }
 const score = document.querySelector('#readiness-score');
 
 let value = 87;
-setInterval(() => {
-    value = value >= 96 ? 87 : value + 1;
-    if (score) score.textContent = value + '%';
-}, 1400);
+if (score && /%$/.test(score.textContent || '')) {
+    setInterval(() => {
+        value = value >= 96 ? 87 : value + 1;
+        score.textContent = value + '%';
+    }, 1400);
+}
 
 if (form) {
     form.addEventListener('submit', (event) => {
@@ -683,11 +813,12 @@ PORT=5000`,
 }
 
 function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
+    const domainProfile = detectDomain(project);
     const palette = raw?.brand?.palette || {};
     const brand = {
         websiteName: raw?.brand?.websiteName || project.name,
         tagline: raw?.brand?.tagline || project.tagline || `${project.name} turns ideas into launch-ready growth.`,
-        positioning: raw?.brand?.positioning || `A focused ${project.category} brand for teams that want speed and clarity.`,
+        positioning: raw?.brand?.positioning || `A focused ${domainProfile.label.toLowerCase()} brand for customers who want quality, clarity, and a memorable experience.`,
         palette: {
             primary: palette.primary || variant.palette.primary,
             secondary: palette.secondary || variant.palette.secondary,
@@ -698,8 +829,11 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
         logo: raw?.brand?.logo || `${project.name} mark with bold initials, ${variant.name} colors, and a clean growth signal.`,
         designVariant: variant.name,
         designSeed: variant.seed,
+        domain: domainProfile.key,
+        domainLabel: domainProfile.label,
+        domainProfile,
     };
-    const logoSvg = raw?.brand?.logoSvg || makeLogoSvg(brand.websiteName, brand.palette, variant);
+    const logoSvg = raw?.brand?.logoSvg || makeLogoSvg(brand.websiteName, brand.palette, variant, domainProfile);
     brand.logoSvg = logoSvg;
     brand.logoDataUrl = raw?.brand?.logoDataUrl || svgToDataUrl(logoSvg);
 
@@ -711,9 +845,9 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
         sections: Array.isArray(raw?.website?.sections) && raw.website.sections.length
             ? raw.website.sections
             : [
-                { title: 'What it does', body: project.description || `A practical ${project.category} product built around real customer work.` },
-                { title: 'Why it wins', body: 'It combines a crisp promise, fast onboarding, and repeatable growth loops.' },
-                { title: 'How it launches', body: 'Start with a landing page, proof-driven ads, and a tight early-access offer.' },
+                { title: domainProfile.key === 'clothing' ? 'The collection' : 'What it does', body: project.description || `A practical ${domainProfile.label.toLowerCase()} brand built around real customer desire.` },
+                { title: domainProfile.key === 'clothing' ? 'Fit and identity' : 'Why it wins', body: domainProfile.key === 'clothing' ? 'It turns a clear visual code into wearable products people can recognize and share.' : 'It combines a crisp promise, fast onboarding, and repeatable growth loops.' },
+                { title: domainProfile.key === 'clothing' ? 'Drop strategy' : 'How it launches', body: domainProfile.key === 'clothing' ? 'Launch with a tight capsule collection, product visuals, and Instagram-ready drop creative.' : 'Start with a landing page, proof-driven ads, and a tight early-access offer.' },
             ],
         html: raw?.website?.html || '',
     };
@@ -727,21 +861,15 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
     const baseProducts = Array.isArray(raw?.products) && raw.products.length
         ? raw.products
         : [];
-    const fallbackProducts = [
-        { name: `${brand.websiteName} Core`, price: '$29/mo', value: `Essential ${project.category} workspace for validating the idea and collecting leads.` },
-        { name: `${brand.websiteName} Flow`, price: '$79/mo', value: 'Workflow automation, dashboards, and team collaboration for active operators.' },
-        { name: `${brand.websiteName} Growth`, price: '$149/mo', value: 'Campaign planning, CRM capture, reporting, and conversion experiments.' },
-        { name: `${brand.websiteName} Data`, price: '$249/mo', value: 'Database-backed insights, customer segments, and executive scorecards.' },
-        { name: `${brand.websiteName} Enterprise`, price: 'Custom', value: 'Custom onboarding, security, integrations, and high-touch launch support.' },
-    ];
+    const fallbackProducts = domainProducts(brand);
     const products = withGeneratedProductImages([...baseProducts, ...fallbackProducts].slice(0, 5), brand);
     const marketing = withGeneratedInstagramPosts(raw?.marketing || {
         personas: ['Time-strapped founder', 'Growth marketer', 'Agency operator'],
         ads: [
-            { channel: 'Google Search', headline: `${brand.websiteName}: launch faster`, body: 'Turn your idea into a polished offer, site, and campaign plan in one workflow.', cta: website.cta },
-            { channel: 'LinkedIn', headline: 'Your next startup kit, already drafted', body: 'Brand, landing page, product tiers, and ad angles built from one brief.', cta: 'See the kit' },
-            { channel: 'Meta', headline: 'From idea to launch page', body: 'Skip the blank page and start with a complete go-to-market foundation.', cta: 'Try it today' },
-            { channel: 'Instagram', headline: `${brand.websiteName} in one post`, body: 'A polished product story, launch offer, and visual creative ready to publish.', cta: 'Launch now' },
+            { channel: 'Instagram', headline: domainProfile.key === 'clothing' ? `${brand.websiteName} drop is live` : `${brand.websiteName}: launch faster`, body: domainProfile.key === 'clothing' ? 'Shop the first capsule: hoodies, tees, caps, totes, and a jacket built around one recognizable visual code.' : 'Turn your idea into a polished offer, site, and campaign plan in one workflow.', cta: website.cta },
+            { channel: 'Instagram', headline: domainProfile.key === 'clothing' ? 'Wear the mark' : 'Your next startup kit', body: domainProfile.key === 'clothing' ? 'A clean logo system, product story, and ready-to-post creative for your next fashion launch.' : 'Brand, landing page, product tiers, and ad angles built from one brief.', cta: 'See the drop' },
+            { channel: 'Meta', headline: domainProfile.key === 'clothing' ? 'Limited capsule, clear identity' : 'From idea to launch page', body: domainProfile.key === 'clothing' ? 'Turn a clothing concept into a product lineup with real apparel visuals and campaign posters.' : 'Skip the blank page and start with a complete go-to-market foundation.', cta: 'Shop now' },
+            { channel: 'Instagram', headline: `${brand.websiteName} visual system`, body: domainProfile.key === 'clothing' ? 'Logo, collection, product images, and drop posters ready for launch.' : 'A polished product story, launch offer, and visual creative ready to publish.', cta: 'Launch now' },
         ],
     }, brand);
     const seo = raw?.seo || {
@@ -840,8 +968,8 @@ async function generateStartupKit(project) {
             positioning: 'string',
             palette: { primary: '#hex', secondary: '#hex', accent: '#hex', ink: '#hex' },
             voice: ['string'],
-            logo: 'string',
-            logoSvg: 'valid compact svg string',
+            logo: 'domain-specific logo concept, e.g. clothing logo uses hanger, garment tag, stitch, apparel monogram, or fashion mark',
+            logoSvg: 'valid compact domain-specific svg string',
         },
         website: {
             urlPath: '/sites/name',
@@ -863,11 +991,11 @@ async function generateStartupKit(project) {
             },
         },
         products: [
-            { name: 'string', price: 'string', value: 'string', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
         ],
         marketing: {
             personas: ['string'],
@@ -881,6 +1009,7 @@ async function generateStartupKit(project) {
     };
 
     try {
+        const domainProfile = detectDomain(project);
         const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
             headers: {
@@ -904,6 +1033,15 @@ async function generateStartupKit(project) {
                         content: JSON.stringify({
                             task: 'Create a complete launch-ready startup kit and multi-file website/app bundle from this brief. Include exactly 5 pre-products based on the description, product image concepts, Instagram-ready square post concepts, HTML, CSS, JS, TypeScript, API starter code, database schema, seed data, and README.',
                             required_schema: schemaInstruction,
+                            domain_context: {
+                                detected_domain: domainProfile.key,
+                                label: domainProfile.label,
+                                logo_motif: domainProfile.logoMotif,
+                                product_rule: domainProfile.key === 'clothing'
+                                    ? 'For clothing/apparel, products must be real apparel items like hoodie, tee, cap, tote, jacket, sneaker, etc. Product image prompts and SVG/logo concepts must look fashion/apparel related, not software dashboards.'
+                                    : 'Products, images, logo, and website copy must visually match the described business category.',
+                                fallback_product_examples: domainProfile.products,
+                            },
                             design_direction: {
                                 seed: variant.seed,
                                 style: variant.name,
