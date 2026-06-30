@@ -63,13 +63,17 @@ router.post('/', requireAuth, async (req, res) => {
 // ── Delete project ──────────────────────────────────────────────────────────
 router.post('/:id/regenerate', requireAuth, async (req, res) => {
     try {
-        const project = await db.getProject(req.userId, req.params.id);
+        const project = await db.getProjectWithSteps(req.userId, req.params.id);
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
         }
+        const previousTemplateKey = project.steps
+            ?.find((step) => step.step_name === 'Identity')
+            ?.notes?.brand?.websiteTemplate?.key || '';
 
         const kit = await generateStartupKit({
             ...project,
+            avoidTemplateKey: previousTemplateKey,
             regenerate: true,
             regenerateAt: new Date().toISOString(),
         });

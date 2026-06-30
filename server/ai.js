@@ -1,6 +1,14 @@
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'anthropic/claude-opus-4.8';
+const DEFAULT_MODEL = 'google/gemini-3.1-pro-preview';
 const crypto = require('crypto');
+
+const VIDEO_HERO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4';
+const WEBSITE_TEMPLATES = [
+    { key: 'company-dashboard', label: 'Company dashboard' },
+    { key: 'video-hero-pill', label: 'Muted video hero with pill nav' },
+    { key: 'dark-editorial', label: 'Dark creator editorial' },
+    { key: 'playful-showcase', label: 'Colorful product showcase' },
+];
 
 const DESIGN_VARIANTS = [
     {
@@ -134,13 +142,18 @@ function svgToDataUrl(svg) {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function makeDesignVariant() {
+function makeDesignVariant(avoidTemplateKey = '') {
     const seed = crypto.randomBytes(8).toString('hex');
     const index = parseInt(seed.slice(0, 2), 16) % DESIGN_VARIANTS.length;
+    let templateIndex = parseInt(seed.slice(4, 6), 16) % WEBSITE_TEMPLATES.length;
+    if (avoidTemplateKey && WEBSITE_TEMPLATES.length > 1 && WEBSITE_TEMPLATES[templateIndex].key === avoidTemplateKey) {
+        templateIndex = (templateIndex + 1) % WEBSITE_TEMPLATES.length;
+    }
     return {
         ...DESIGN_VARIANTS[index],
         seed,
         angle: 110 + (parseInt(seed.slice(2, 4), 16) % 80),
+        websiteTemplate: WEBSITE_TEMPLATES[templateIndex],
     };
 }
 
@@ -276,6 +289,69 @@ function withGeneratedInstagramPosts(marketing, brand) {
     };
 }
 
+function buildVideoHeroHtml({ appName, project, brand, website, domain, productHtml, adHtml, metricHtml, launch }) {
+    const navLinks = domain.nav || ['Story', 'Products', 'Help'];
+    return `<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapeHtml(appName)} | ${escapeHtml(brand.tagline)}</title>
+    <meta name="description" content="${escapeHtml(website.subheadline)}">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="video-hero-template">
+    <section class="vh-shell">
+        <video class="vh-video" src="${VIDEO_HERO_URL}" autoplay muted loop playsinline></video>
+        <div class="vh-wash"></div>
+        <div class="vh-content">
+            <nav class="vh-nav">
+                <a class="vh-logo" href="#top" aria-label="${escapeHtml(appName)} home">
+                    ${brand.logoSvg || escapeHtml(appName.slice(0, 2).toUpperCase())}
+                </a>
+                <div class="vh-pill">
+                    ${navLinks.map((link) => `<a href="#${slugify(link)}">${escapeHtml(link)}</a>`).join('')}
+                </div>
+            </nav>
+            <div id="top" class="vh-copy">
+                <a class="vh-badge" href="#products">${escapeHtml(domain.eyebrow)} <span>→</span></a>
+                <h1>${escapeHtml(website.headline)}</h1>
+                <p>${escapeHtml(website.subheadline)}</p>
+                <a class="vh-cta" href="#products">${escapeHtml(website.cta || 'Shop the drop')} <span>→</span></a>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <section id="products" class="pricing">
+            <p class="eyebrow">Products</p>
+            <h2>${escapeHtml(domain.productHeading)}</h2>
+            <div class="pricing-grid">
+                ${productHtml}
+            </div>
+        </section>
+
+        <section id="drops" class="campaigns">
+            <p class="eyebrow">Instagram</p>
+            <h2>${escapeHtml(domain.campaignHeading)}</h2>
+            <div class="campaign-grid">
+                ${adHtml}
+            </div>
+        </section>
+
+        <section class="metrics">
+            <div>
+                <p class="eyebrow">Launch next</p>
+                <h2>${escapeHtml(launch?.firstWeek || 'Turn the first drop into real customer signal.')}</h2>
+            </div>
+            <ul>${metricHtml}</ul>
+        </section>
+    </main>
+    <script src="./app.js" defer></script>
+</body>
+</html>`;
+}
+
 function buildWebsiteFiles(project, brand, website, products, marketing, seo, launch, scale) {
     const appName = brand.websiteName || project.name;
     const slug = slugify(appName);
@@ -319,7 +395,7 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
     const accent = palette.accent || '#f97316';
     const ink = palette.ink || '#111827';
 
-    const indexHtml = `<!doctype html>
+    let indexHtml = `<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -423,7 +499,21 @@ function buildWebsiteFiles(project, brand, website, products, marketing, seo, la
 </body>
 </html>`;
 
-    const css = `:root {
+    if (brand.websiteTemplate?.key === 'video-hero-pill') {
+        indexHtml = buildVideoHeroHtml({
+            appName,
+            project,
+            brand,
+            website,
+            domain,
+            productHtml,
+            adHtml,
+            metricHtml,
+            launch,
+        });
+    }
+
+    let css = `:root {
     --primary: ${primary};
     --secondary: ${secondary};
     --accent: ${accent};
@@ -615,6 +705,217 @@ p { color: var(--muted); line-height: 1.65; }
     .product-panel { min-height: auto; }
     .demo form { flex-direction: column; }
 }`;
+
+    if (brand.websiteTemplate?.key === 'video-hero-pill') {
+        css += `
+
+.video-hero-template {
+    background: #f0f0ee;
+}
+
+.vh-shell {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #f0f0ee;
+}
+
+.vh-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vh-wash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(240, 240, 238, 0.18), rgba(240, 240, 238, 0.36));
+}
+
+.vh-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.vh-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem 0;
+}
+
+.vh-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: #ededed;
+    overflow: hidden;
+}
+
+.vh-logo svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.vh-pill {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 4vw, 2.5rem);
+    border-radius: 0.85rem;
+    background: #ededed;
+    padding: 0.72rem clamp(1rem, 4vw, 2rem);
+}
+
+.vh-pill a {
+    color: #374151;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.vh-copy {
+    display: flex;
+    flex: 1;
+    max-width: 22rem;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 0 5rem clamp(1.5rem, 8vw, 7rem);
+}
+
+.vh-badge, .vh-cta {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.4rem;
+    color: #3b82f6;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.vh-badge {
+    margin-bottom: 0.75rem;
+}
+
+.vh-copy h1 {
+    max-width: 18rem;
+    color: #111827;
+    font-size: clamp(1.5rem, 5vw, 1.9rem);
+    font-weight: 650;
+    line-height: 1.15;
+    margin-bottom: 0.75rem;
+}
+
+.vh-copy p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.vh-cta {
+    border: 1px solid #60a5fa;
+    border-radius: 999px;
+    padding: 0.68rem 1.25rem;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.vh-cta:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.vh-badge span, .vh-cta span {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.vh-badge:hover span, .vh-cta:hover span {
+    transform: translateX(0.125rem);
+}`;
+    }
+
+    if (brand.websiteTemplate?.key === 'dark-editorial') {
+        indexHtml = indexHtml.replace('<body>', '<body class="dark-editorial-template">');
+        css += `
+
+.dark-editorial-template {
+    background: #0c0c0c;
+    color: #d7e2ea;
+}
+
+.dark-editorial-template .site-header {
+    background: rgba(12, 12, 12, 0.78);
+    border-color: rgba(215, 226, 234, 0.12);
+}
+
+.dark-editorial-template h1,
+.dark-editorial-template h2 {
+    color: transparent;
+    background: linear-gradient(180deg, #646973 0%, #bbccd7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.dark-editorial-template .feature-card,
+.dark-editorial-template .pricing-card,
+.dark-editorial-template .campaign-card,
+.dark-editorial-template .metrics,
+.dark-editorial-template .demo,
+.dark-editorial-template .product-panel {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark-editorial-template p,
+.dark-editorial-template .panel-list li,
+.dark-editorial-template nav {
+    color: rgba(215, 226, 234, 0.78);
+}`;
+    }
+
+    if (brand.websiteTemplate?.key === 'playful-showcase') {
+        indexHtml = indexHtml.replace('<body>', '<body class="playful-showcase-template">');
+        css += `
+
+.playful-showcase-template {
+    background: var(--primary);
+}
+
+.playful-showcase-template .hero {
+    min-height: 100vh;
+}
+
+.playful-showcase-template h1 {
+    max-width: 9ch;
+    color: white;
+    font-size: clamp(4rem, 14vw, 12rem);
+    text-transform: uppercase;
+}
+
+.playful-showcase-template .hero-copy > p:not(.eyebrow) {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.playful-showcase-template .pricing-card,
+.playful-showcase-template .campaign-card,
+.playful-showcase-template .feature-card {
+    border-radius: 1.5rem;
+    transform: rotate(-0.4deg);
+}
+
+.playful-showcase-template .pricing-card:nth-child(even),
+.playful-showcase-template .campaign-card:nth-child(even) {
+    transform: rotate(0.5deg);
+}`;
+    }
 
     const js = `const form = document.querySelector('.demo form');
 const score = document.querySelector('#readiness-score');
@@ -812,7 +1113,7 @@ PORT=5000`,
     };
 }
 
-function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
+function normalizeKit(raw, project, source, variant = makeDesignVariant(project?.avoidTemplateKey || '')) {
     const domainProfile = detectDomain(project);
     const palette = raw?.brand?.palette || {};
     const brand = {
@@ -832,6 +1133,7 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
         domain: domainProfile.key,
         domainLabel: domainProfile.label,
         domainProfile,
+        websiteTemplate: variant.websiteTemplate,
     };
     const logoSvg = raw?.brand?.logoSvg || makeLogoSvg(brand.websiteName, brand.palette, variant, domainProfile);
     brand.logoSvg = logoSvg;
@@ -862,7 +1164,22 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
         ? raw.products
         : [];
     const fallbackProducts = domainProducts(brand);
-    const products = withGeneratedProductImages([...baseProducts, ...fallbackProducts].slice(0, 5), brand);
+    const domainItemTypes = new Set(fallbackProducts.map((product) => product.itemType));
+    const normalizedBaseProducts = baseProducts.map((product, index) => {
+        const fallback = fallbackProducts[index % fallbackProducts.length];
+        if (domainProfile.key === 'default') return product;
+        const productName = String(product.name || '').toLowerCase();
+        const looksGeneric = /starter|core|flow|growth|enterprise|plan|tier|package/.test(productName);
+        return {
+            ...product,
+            name: looksGeneric || !product.name ? fallback.name : product.name,
+            price: product.price || fallback.price,
+            value: product.value || fallback.value,
+            itemType: domainItemTypes.has(product.itemType) ? product.itemType : fallback.itemType,
+            productImagePrompt: product.productImagePrompt || fallback.productImagePrompt,
+        };
+    });
+    const products = withGeneratedProductImages([...normalizedBaseProducts, ...fallbackProducts].slice(0, 5), brand);
     const marketing = withGeneratedInstagramPosts(raw?.marketing || {
         personas: ['Time-strapped founder', 'Growth marketer', 'Agency operator'],
         ads: [
@@ -933,7 +1250,7 @@ function normalizeKit(raw, project, source, variant = makeDesignVariant()) {
     };
 }
 
-function fallbackStartupKit(project, source = 'local', variant = makeDesignVariant()) {
+function fallbackStartupKit(project, source = 'local', variant = makeDesignVariant(project?.avoidTemplateKey || '')) {
     return normalizeKit({
         brand: {
             websiteName: project.name,
@@ -953,7 +1270,7 @@ function stripCodeFence(value) {
 async function generateStartupKit(project) {
     const apiKey = process.env.OPENROUTER_API_KEY;
     const model = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
-    const variant = makeDesignVariant();
+    const variant = makeDesignVariant(project?.avoidTemplateKey || '');
     if (!apiKey) {
         return fallbackStartupKit(project, 'local', variant);
     }
@@ -991,16 +1308,16 @@ async function generateStartupKit(project) {
             },
         },
         products: [
-            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
-            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'string' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'realistic ecommerce product photography prompt' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'realistic ecommerce product photography prompt' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'realistic ecommerce product photography prompt' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'realistic ecommerce product photography prompt' },
+            { name: 'string', price: 'string', value: 'string', itemType: 'domain-specific product type', productImagePrompt: 'realistic ecommerce product photography prompt' },
         ],
         marketing: {
             personas: ['string'],
             ads: [{ channel: 'string', headline: 'string', body: 'string', cta: 'string' }],
-            instagramPosts: [{ headline: 'string', body: 'string', cta: 'string', caption: 'string', size: '1080x1080' }],
+            instagramPosts: [{ headline: 'string', body: 'string', cta: 'string', caption: 'string', size: '1080x1080', posterImagePrompt: 'realistic branded Instagram poster prompt' }],
         },
         seo: { title: 'string', description: 'string', keywords: ['string'] },
         launch: { checklist: ['string'], firstWeek: 'string' },
@@ -1047,7 +1364,8 @@ async function generateStartupKit(project) {
                                 style: variant.name,
                                 mood: variant.mood,
                                 palette: variant.palette,
-                                instruction: 'Even if the startup name is the same as a previous generation, create a meaningfully different logo, layout, color treatment, product names, and marketing creative.',
+                                website_template: variant.websiteTemplate,
+                                instruction: 'Even if the startup name is the same as a previous generation, create a meaningfully different logo, layout, color treatment, product names, realistic product photography prompts, and marketing poster creative.',
                             },
                             startup: {
                                 name: project.name,
